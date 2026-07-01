@@ -1,12 +1,15 @@
 extends Control
 
 const DATA_PATH := "res://data/demo_content.json"
+const CHARACTER_DATA_PATH := "res://data/characters.json"
 const SAVE_PATH := "user://night_cafe_demo_save.json"
 const AssetCatalog := preload("res://scripts/core/asset_catalog.gd")
+const CharacterSpriteController := preload("res://scripts/visual/character_sprite_controller.gd")
 const SCENE_WIDTH := 1280.0
 const SCENE_HEIGHT := 410.0
 
 var data: Dictionary
+var character_data: Dictionary
 var state: Dictionary
 var current_night_index := 0
 var current_visit_index := 0
@@ -16,6 +19,9 @@ var selected_menu: Array[String] = []
 var menu_recipe_buttons: Dictionary = {}
 var ambience_enabled := true
 var rain_lines: Array[ColorRect] = []
+var steam_lines: Array[ColorRect] = []
+var lamp_glows: Array[ColorRect] = []
+var scene_time := 0.0
 var screen_history: Array[String] = []
 
 var root_layer: Control
@@ -27,11 +33,27 @@ var top_bar: HBoxContainer
 
 func _ready() -> void:
 	data = _load_json(DATA_PATH)
+	character_data = _load_json(CHARACTER_DATA_PATH)
 	_reset_state()
 	_build_shell()
 	_show_main_menu()
 
 func _process(delta: float) -> void:
+	scene_time += delta
+	for i in lamp_glows.size():
+		var glow := lamp_glows[i]
+		var color := glow.color
+		color.a = 0.11 + sin(scene_time * 1.4 + float(i)) * 0.025
+		glow.color = color
+	for i in steam_lines.size():
+		var steam := steam_lines[i]
+		steam.position.y -= 8.0 * delta
+		var color := steam.color
+		color.a -= 0.16 * delta
+		if color.a <= 0.05:
+			color.a = 0.28
+			steam.position.y += 24.0
+		steam.color = color
 	if not ambience_enabled:
 		return
 	for line in rain_lines:
@@ -553,6 +575,8 @@ func _render_cafe_scene(mode := "idle", customer_id := "", recipe_id := "", resu
 	for child in scene_layer.get_children():
 		child.queue_free()
 	rain_lines.clear()
+	steam_lines.clear()
+	lamp_glows.clear()
 
 	_add_scene_rect(Vector2.ZERO, Vector2(SCENE_WIDTH, SCENE_HEIGHT), Color("#18202a"))
 	_add_scene_rect(Vector2(0, 0), Vector2(SCENE_WIDTH, 88), Color("#24150d"))
@@ -571,7 +595,7 @@ func _render_cafe_scene(mode := "idle", customer_id := "", recipe_id := "", resu
 
 	_add_counter_and_props()
 	_add_tables_and_seats()
-	_add_scene_sprite(AssetCatalog.MODERN_CHARACTER_DIR + "Chef_Alex_32x32.png", Vector2(608, 126), Vector2(72, 72), Color("#fff3dc"))
+	_add_character_sprite("player", Vector2(640, 196), "brew_idle", Color("#fff3dc"))
 
 	var active_customer := customer_id
 	_add_customer_in_scene("ban_hoa", Vector2(178, 246), active_customer == "ban_hoa")
@@ -582,7 +606,7 @@ func _render_cafe_scene(mode := "idle", customer_id := "", recipe_id := "", resu
 	elif mode in ["menu", "prep", "closing", "notebook", "recipes", "ending"]:
 		_add_customer_in_scene("tai_xe", Vector2(610, 238), false)
 
-	_add_scene_sprite(AssetCatalog.MODERN_ANIMATED_DIR + "animated_cat_32x32.png", Vector2(78, 332), Vector2(64, 64), Color("#ffe8c2"))
+	_add_animated_prop(AssetCatalog.MODERN_ANIMATED_DIR + "animated_cat_32x32.png", Vector2(110, 390), 12, 2.0, 4.0, Color("#ffe8c2"))
 	_add_steam(Vector2(548, 180))
 	_add_steam(Vector2(705, 182))
 	_add_scene_status(mode, customer_id, recipe_id, result)
@@ -621,6 +645,7 @@ func _add_warm_light(pos: Vector2, rect_size: Vector2, alpha: float) -> void:
 	light.position = pos
 	light.size = rect_size
 	scene_layer.add_child(light)
+	lamp_glows.append(light)
 
 func _add_menu_board() -> void:
 	var board := PanelContainer.new()
@@ -655,10 +680,10 @@ func _add_counter_and_props() -> void:
 	_add_scene_rect(Vector2(284, 182), Vector2(712, 74), Color("#3a2418"))
 	_add_scene_rect(Vector2(304, 194), Vector2(672, 10), Color("#8f6a45"))
 	_add_scene_rect(Vector2(508, 112), Vector2(250, 34), Color("#332016"))
-	_add_scene_sprite(AssetCatalog.MODERN_ANIMATED_DIR + "animated_coffee_32x32.png", Vector2(532, 154), Vector2(42, 42), Color("#fff0d0"))
-	_add_scene_sprite(AssetCatalog.MODERN_ANIMATED_DIR + "animated_kitchen_pan_with_omelette_32x32.png", Vector2(692, 154), Vector2(44, 44), Color("#fff0d0"))
-	_add_scene_sprite(AssetCatalog.MODERN_ANIMATED_DIR + "animated_sink_32x32.png", Vector2(770, 155), Vector2(44, 44), Color("#fff0d0"))
-	_add_scene_sprite(AssetCatalog.MODERN_ANIMATED_DIR + "animated_candle_32x32.png", Vector2(416, 154), Vector2(40, 40), Color("#ffdca2"))
+	_add_animated_prop(AssetCatalog.MODERN_ANIMATED_DIR + "animated_coffee_32x32.png", Vector2(552, 198), 6, 2.0, 4.0, Color("#fff0d0"))
+	_add_animated_prop(AssetCatalog.MODERN_ANIMATED_DIR + "animated_kitchen_pan_with_omelette_32x32.png", Vector2(712, 198), 8, 2.0, 5.0, Color("#fff0d0"))
+	_add_scene_sprite(AssetCatalog.MODERN_ANIMATED_DIR + "animated_sink_32x32.png", Vector2(760, 144), Vector2(64, 64), Color("#fff0d0"))
+	_add_animated_prop(AssetCatalog.MODERN_ANIMATED_DIR + "animated_candle_32x32.png", Vector2(436, 198), 3, 2.0, 5.0, Color("#ffdca2"))
 	_add_scene_rect(Vector2(894, 142), Vector2(38, 52), Color("#24412b"))
 	_add_scene_rect(Vector2(906, 118), Vector2(14, 26), Color("#4c7a47"))
 	_add_scene_rect(Vector2(930, 130), Vector2(14, 18), Color("#5c8a52"))
@@ -678,7 +703,7 @@ func _add_customer_in_scene(customer_id: String, pos: Vector2, active := false) 
 	if active:
 		_add_warm_light(pos - Vector2(18, 18), Vector2(104, 104), 0.16)
 		_add_scene_label("...", pos + Vector2(26, -18), Vector2(48, 20), Color("#f1d8a0"), 15)
-	_add_scene_sprite(_customer_sprite_path(customer_id), pos, Vector2(68, 68), Color("#ffffff") if active else Color("#d5c2a6"))
+	_add_character_sprite(customer_id, pos + Vector2(32, 64), "seated_idle", Color("#ffffff") if active else Color("#d5c2a6"))
 
 func _add_steam(origin: Vector2) -> void:
 	for i in 3:
@@ -688,6 +713,7 @@ func _add_steam(origin: Vector2) -> void:
 		steam.size = Vector2(4, 20)
 		steam.rotation = deg_to_rad(-8 + i * 7)
 		scene_layer.add_child(steam)
+		steam_lines.append(steam)
 
 func _add_scene_status(mode: String, customer_id: String, recipe_id: String, result: String) -> void:
 	var pill := PanelContainer.new()
@@ -765,6 +791,47 @@ func _add_scene_sprite(path: String, pos: Vector2, sprite_size: Vector2, tint :=
 	sprite.modulate = tint
 	scene_layer.add_child(sprite)
 	return sprite
+
+func _add_animated_prop(path: String, foot_position: Vector2, frame_count: int, pixel_scale := 2.0, speed := 4.0, tint := Color.WHITE) -> AnimatedSprite2D:
+	var texture := AssetCatalog.load_texture(path)
+	var prop := AnimatedSprite2D.new()
+	var frames := SpriteFrames.new()
+	frames.add_animation("loop")
+	frames.set_animation_loop("loop", true)
+	frames.set_animation_speed("loop", speed)
+	for frame_index in range(frame_count):
+		var atlas := AtlasTexture.new()
+		atlas.atlas = texture
+		atlas.region = Rect2(float(frame_index * AssetCatalog.TILE_SIZE), 0, AssetCatalog.TILE_SIZE, AssetCatalog.TILE_SIZE)
+		frames.add_frame("loop", atlas)
+	prop.sprite_frames = frames
+	prop.animation = "loop"
+	prop.centered = true
+	prop.offset = Vector2(0, -AssetCatalog.TILE_SIZE * 0.5)
+	prop.position = foot_position.floor()
+	prop.scale = Vector2(pixel_scale, pixel_scale)
+	prop.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	prop.modulate = tint
+	prop.z_index = int(foot_position.y)
+	scene_layer.add_child(prop)
+	prop.play()
+	return prop
+
+func _add_character_sprite(character_id: String, foot_position: Vector2, animation_name := "", tint := Color.WHITE) -> CharacterSpriteController:
+	var controller := CharacterSpriteController.new()
+	controller.position = foot_position.floor()
+	controller.z_index = int(foot_position.y)
+	controller.modulate = tint
+	scene_layer.add_child(controller)
+	controller.configure(character_id, _character_config(character_id), animation_name)
+	return controller
+
+func _character_config(character_id: String) -> Dictionary:
+	if character_data.has(character_id):
+		return character_data[character_id]
+	if character_data.has("player"):
+		return character_data["player"]
+	return {}
 
 func _add_scene_label(text: String, pos: Vector2, label_size: Vector2, color: Color, font_size := 14, align := HORIZONTAL_ALIGNMENT_LEFT) -> Label:
 	var label := Label.new()
