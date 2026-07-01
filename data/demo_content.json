@@ -1,0 +1,786 @@
+{
+  "game": {
+    "title": "Đèn Hẻm Sau Mưa",
+    "subtitle": "Một quán nhỏ mở khi thành phố đã ngủ.",
+    "demo_nights": 5,
+    "vision": "Bạn không cứu thế giới. Bạn chỉ mở một quán nhỏ trong hẻm, nấu một món đủ ấm, pha một ly đủ dịu, và lắng nghe những người không biết nói chuyện với ai."
+  },
+  "recipes": [
+    {
+      "id": "ca_phe_den_nong",
+      "name": "Cà phê đen nóng",
+      "type": "drink",
+      "base": "cà phê",
+      "ingredients": ["cà phê phin", "nước nóng"],
+      "flavor_tags": ["đắng", "đậm"],
+      "emotion_tags": ["thức tỉnh", "can đảm"],
+      "warmth_level": 3,
+      "caffeine_level": 5,
+      "comfort_level": 1,
+      "description": "Đắng, thẳng, không dỗ dành. Hợp với người cần tỉnh táo thật sự.",
+      "initial": true
+    },
+    {
+      "id": "ca_phe_sua",
+      "name": "Cà phê sữa",
+      "type": "drink",
+      "base": "cà phê",
+      "ingredients": ["cà phê phin", "sữa đặc", "đá ít"],
+      "flavor_tags": ["đắng", "ngọt", "béo"],
+      "emotion_tags": ["tỉnh táo", "quen thuộc"],
+      "warmth_level": 1,
+      "caffeine_level": 4,
+      "comfort_level": 2,
+      "description": "Một ly quen của thành phố: đủ tỉnh, đủ ngọt để không quá gắt.",
+      "initial": true
+    },
+    {
+      "id": "bac_xiu_am",
+      "name": "Bạc xỉu ấm",
+      "type": "drink",
+      "base": "sữa",
+      "ingredients": ["sữa", "ít cà phê", "sữa đặc"],
+      "flavor_tags": ["ngọt", "béo", "dịu"],
+      "emotion_tags": ["trấn an", "nhẹ lòng"],
+      "warmth_level": 3,
+      "caffeine_level": 2,
+      "comfort_level": 4,
+      "description": "Tỉnh vừa đủ. Dịu vừa đủ. Như một câu 'từ từ thôi'.",
+      "initial": true
+    },
+    {
+      "id": "tra_gung_mat_ong",
+      "name": "Trà gừng mật ong",
+      "type": "drink",
+      "base": "trà",
+      "ingredients": ["gừng", "mật ong", "nước nóng"],
+      "flavor_tags": ["cay nhẹ", "ngọt", "ấm"],
+      "emotion_tags": ["an ủi", "bình tâm"],
+      "warmth_level": 5,
+      "caffeine_level": 0,
+      "comfort_level": 4,
+      "description": "Ấm từ cổ họng xuống ngực. Hợp với đêm lạnh hoặc người im lặng quá lâu.",
+      "initial": true
+    },
+    {
+      "id": "tra_hoa_cuc_mat_ong",
+      "name": "Trà hoa cúc mật ong",
+      "type": "drink",
+      "base": "trà",
+      "ingredients": ["hoa cúc", "mật ong"],
+      "flavor_tags": ["thanh", "ngọt dịu"],
+      "emotion_tags": ["thư giãn", "chấp nhận"],
+      "warmth_level": 4,
+      "caffeine_level": 0,
+      "comfort_level": 5,
+      "description": "Dịu, chậm, không ép ai phải ổn ngay.",
+      "initial": true
+    },
+    {
+      "id": "tra_sen_am",
+      "name": "Trà sen ấm",
+      "type": "drink",
+      "base": "trà",
+      "ingredients": ["trà sen", "nước nóng"],
+      "flavor_tags": ["thanh", "thơm"],
+      "emotion_tags": ["nhớ nhà", "dịu dàng"],
+      "warmth_level": 3,
+      "caffeine_level": 1,
+      "comfort_level": 4,
+      "description": "Mùi sen nhẹ như một buổi sáng cũ đi ngang qua trí nhớ.",
+      "initial": true
+    },
+    {
+      "id": "sua_nong_mat_ong",
+      "name": "Sữa nóng mật ong",
+      "type": "drink",
+      "base": "sữa",
+      "ingredients": ["sữa", "mật ong"],
+      "flavor_tags": ["ngọt", "béo", "dịu"],
+      "emotion_tags": ["nghỉ ngơi", "an ủi"],
+      "warmth_level": 4,
+      "caffeine_level": 0,
+      "comfort_level": 5,
+      "description": "Một lý do nhỏ để ngồi xuống và thở chậm lại.",
+      "initial": true
+    },
+    {
+      "id": "cacao_nong",
+      "name": "Cacao nóng",
+      "type": "drink",
+      "base": "cacao",
+      "ingredients": ["cacao", "sữa", "ít đường"],
+      "flavor_tags": ["đắng nhẹ", "ngọt", "béo"],
+      "emotion_tags": ["vỗ về", "can đảm"],
+      "warmth_level": 4,
+      "caffeine_level": 1,
+      "comfort_level": 4,
+      "description": "Ngọt vừa phải, đủ để nhắc rằng bắt đầu lại không phải thất bại.",
+      "initial": true
+    },
+    {
+      "id": "sua_dau_nanh_nong",
+      "name": "Sữa đậu nành nóng",
+      "type": "drink",
+      "base": "sữa đậu nành",
+      "ingredients": ["đậu nành", "ít đường"],
+      "flavor_tags": ["thanh", "béo nhẹ"],
+      "emotion_tags": ["nhẹ bụng", "bình tâm"],
+      "warmth_level": 3,
+      "caffeine_level": 0,
+      "comfort_level": 4,
+      "description": "Ấm, no nhẹ, không làm đầu óc chạy nhanh hơn.",
+      "initial": true
+    },
+    {
+      "id": "chao_trang_trung",
+      "name": "Cháo trắng trứng",
+      "type": "food",
+      "base": "cháo",
+      "ingredients": ["gạo", "trứng", "hành", "tiêu"],
+      "flavor_tags": ["mặn nhẹ", "ấm", "bình dân"],
+      "emotion_tags": ["hoài niệm", "an ủi", "nhớ nhà"],
+      "warmth_level": 5,
+      "caffeine_level": 0,
+      "comfort_level": 5,
+      "description": "Không cầu kỳ. Chỉ là cháo, trứng, hành, tiêu, và một khoảng lặng.",
+      "initial": true
+    },
+    {
+      "id": "mi_trung",
+      "name": "Mì trứng",
+      "type": "food",
+      "base": "mì",
+      "ingredients": ["mì", "trứng", "hành"],
+      "flavor_tags": ["mặn", "no bụng", "quen thuộc"],
+      "emotion_tags": ["tiếp sức", "đời thường"],
+      "warmth_level": 4,
+      "caffeine_level": 0,
+      "comfort_level": 3,
+      "description": "Một bát mì nóng cho người đã chạy ngoài đường quá lâu.",
+      "initial": true
+    },
+    {
+      "id": "com_rang_trung",
+      "name": "Cơm rang trứng",
+      "type": "food",
+      "base": "cơm",
+      "ingredients": ["cơm nguội", "trứng", "hành", "nước tương"],
+      "flavor_tags": ["mặn", "béo", "no bụng"],
+      "emotion_tags": ["bắt đầu lại", "ấm nhà"],
+      "warmth_level": 4,
+      "caffeine_level": 0,
+      "comfort_level": 4,
+      "description": "Món của căn bếp nhỏ: còn gì dùng nấy, nhưng vẫn tử tế.",
+      "initial": true
+    },
+    {
+      "id": "banh_mi_chao_nho",
+      "name": "Bánh mì chảo nhỏ",
+      "type": "food",
+      "base": "bánh mì",
+      "ingredients": ["bánh mì", "trứng", "xíu mại", "tiêu"],
+      "flavor_tags": ["mặn", "béo", "ấm"],
+      "emotion_tags": ["no lòng", "đợi chờ"],
+      "warmth_level": 4,
+      "caffeine_level": 0,
+      "comfort_level": 4,
+      "description": "Một chảo nhỏ đủ cho người không muốn về nhà khi bụng còn trống.",
+      "initial": true
+    },
+    {
+      "id": "sup_nong_rau_thom",
+      "name": "Súp nóng rau thơm",
+      "type": "food",
+      "base": "súp",
+      "ingredients": ["nước dùng", "rau thơm", "tiêu"],
+      "flavor_tags": ["thanh", "ấm", "nhẹ bụng"],
+      "emotion_tags": ["dịu dàng", "hồi sức"],
+      "warmth_level": 5,
+      "caffeine_level": 0,
+      "comfort_level": 4,
+      "description": "Nhẹ nhưng không nhạt. Như người biết dịu dàng mà không ồn ào.",
+      "initial": true
+    },
+    {
+      "id": "chanh_muoi_am",
+      "name": "Chanh muối ấm",
+      "type": "drink",
+      "base": "chanh muối",
+      "ingredients": ["chanh muối", "mật ong", "nước ấm"],
+      "flavor_tags": ["chua dịu", "mặn nhẹ", "thanh"],
+      "emotion_tags": ["tỉnh nhẹ", "chấp nhận"],
+      "warmth_level": 3,
+      "caffeine_level": 0,
+      "comfort_level": 3,
+      "description": "Một vị chua mặn vừa đủ để kéo người ta về hiện tại.",
+      "unlock_night": 3
+    },
+    {
+      "id": "mi_bo_it_cay",
+      "name": "Mì bò ít cay",
+      "type": "food",
+      "base": "mì",
+      "ingredients": ["mì", "bò", "nước dùng", "ớt rất ít"],
+      "flavor_tags": ["mặn", "cay nhẹ", "no bụng"],
+      "emotion_tags": ["tiếp sức", "can đảm"],
+      "warmth_level": 5,
+      "caffeine_level": 0,
+      "comfort_level": 4,
+      "description": "Đậm hơn mì trứng, nhưng vẫn giữ lại một chút mềm.",
+      "unlock_night": 2
+    },
+    {
+      "id": "tra_dao_it_ngot",
+      "name": "Trà đào ít ngọt",
+      "type": "drink",
+      "base": "trà",
+      "ingredients": ["trà", "đào", "ít đường"],
+      "flavor_tags": ["thanh", "chua dịu", "ít ngọt"],
+      "emotion_tags": ["nhẹ lòng", "đổi gió"],
+      "warmth_level": 1,
+      "caffeine_level": 1,
+      "comfort_level": 3,
+      "description": "Mát và không quá ngọt. Hợp với người cần một khoảng thở.",
+      "unlock_night": 2
+    },
+    {
+      "id": "chao_hanh_tieu_that_nhe",
+      "name": "Cháo hành tiêu thật nhẹ",
+      "type": "food",
+      "base": "cháo",
+      "ingredients": ["gạo", "hành", "tiêu rất ít"],
+      "flavor_tags": ["ấm", "rất nhẹ", "bình dân"],
+      "emotion_tags": ["chấp nhận", "hoài niệm"],
+      "warmth_level": 5,
+      "caffeine_level": 0,
+      "comfort_level": 5,
+      "description": "Gần như không thêm gì, chỉ giữ lại hơi ấm và mùi hành.",
+      "unlock_night": 4
+    },
+    {
+      "id": "tra_sen_dem_mua",
+      "name": "Trà sen đêm mưa",
+      "type": "drink",
+      "base": "trà sen",
+      "ingredients": ["trà sen", "mật ong", "một lát gừng"],
+      "flavor_tags": ["thanh", "ấm", "thơm"],
+      "emotion_tags": ["dịu dàng", "nhớ nhà", "hy vọng nhỏ"],
+      "warmth_level": 4,
+      "caffeine_level": 1,
+      "comfort_level": 5,
+      "description": "Một ly mở khóa khi quán đã biết mưa cũng có nhiều kiểu rơi.",
+      "unlock_night": 5
+    }
+  ],
+  "customers": {
+    "tai_xe": {
+      "name": "Minh",
+      "age": "khoảng 27",
+      "short_description": "Tài xế công nghệ chạy đêm, áo khoác mưa luôn treo sau ghế.",
+      "visual_hint": "Mũ bảo hiểm xanh sậm, mắt lúc nào cũng như vừa tỉnh dậy.",
+      "speaking_style": "Vui miệng, hay đùa, nhưng càng khuya càng ngắn câu.",
+      "known_preferences": ["đắng", "no bụng", "không quá ngọt"],
+      "disliked_flavors": ["quá béo"],
+      "memory_dish": "sua_nong_mat_ong",
+      "hidden_wound": "Sợ dừng lại là thua, nên cứ chạy dù đã kiệt sức.",
+      "keepsake_item": "Một móc khóa xe máy đã trầy."
+    },
+    "van_phong": {
+      "name": "Linh",
+      "age": "khoảng 31",
+      "short_description": "Nhân viên văn phòng vừa nghỉ việc sau nhiều năm chịu đựng.",
+      "visual_hint": "Túi tote vải, tay vẫn giữ thẻ nhân viên đã tháo dây.",
+      "speaking_style": "Bình tĩnh, lịch sự, tự sửa câu nói của mình rất nhiều.",
+      "known_preferences": ["ít ngọt", "thanh", "ấm"],
+      "disliked_flavors": ["quá đắng", "quá ngọt"],
+      "memory_dish": "cacao_nong",
+      "hidden_wound": "Không chắc rời đi là can đảm hay ích kỷ.",
+      "keepsake_item": "Một tấm sticky note ghi: 'Mình có thể bắt đầu lại.'"
+    },
+    "bao_ve": {
+      "name": "Chú Bảy",
+      "age": "ngoài 60",
+      "short_description": "Bảo vệ ca đêm của tòa nhà cũ bên kia đường.",
+      "visual_hint": "Đồng hồ kim cũ, ảnh nhỏ kẹp trong ví.",
+      "speaking_style": "Ít nói. Khi nói thường nhìn xuống ly trước.",
+      "known_preferences": ["ấm", "đơn giản", "ít gia vị"],
+      "disliked_flavors": ["quá cay", "quá ngọt"],
+      "memory_dish": "chao_hanh_tieu_that_nhe",
+      "hidden_wound": "Giữ thói quen cũ vì người từng nấu cho ông không còn nữa.",
+      "keepsake_item": "Một tấm ảnh đen trắng nhỏ đặt cạnh lọ hoa."
+    },
+    "sinh_vien": {
+      "name": "An",
+      "age": "21",
+      "short_description": "Sinh viên làm đồ án, nói nhanh như đang chạy deadline.",
+      "visual_hint": "Ba lô nặng, laptop dán sticker bong góc.",
+      "speaking_style": "Líu ríu, tự trêu mình, hay nói 'em ổn' quá nhanh.",
+      "known_preferences": ["tỉnh táo", "no bụng", "không quá gắt"],
+      "disliked_flavors": ["quá đắng"],
+      "memory_dish": "sua_dau_nanh_nong",
+      "hidden_wound": "Sợ mình không đủ giỏi nên không dám vui với việc mình làm.",
+      "keepsake_item": "Một bản phác thảo giao diện quán vẽ trong lúc chờ mì."
+    },
+    "ban_hoa": {
+      "name": "Cô Hạnh",
+      "age": "khoảng 45",
+      "short_description": "Người bán hoa đêm, hay ghé với vài cành còn sót.",
+      "visual_hint": "Áo khoác màu nâu, ngón tay có mùi lá và giấy gói hoa.",
+      "speaking_style": "Nhẹ, chậm, ít than vãn. Hay nói về thời tiết như nói về người.",
+      "known_preferences": ["thanh", "ấm", "ít ngọt"],
+      "disliked_flavors": ["quá béo"],
+      "memory_dish": "tra_sen_dem_mua",
+      "hidden_wound": "Sống một mình lâu đến mức quen với việc không ai hỏi mình ăn chưa.",
+      "keepsake_item": "Một lọ hoa nhỏ đặt bên cạnh radio."
+    },
+    "cap_doi": {
+      "name": "Hai người dưới một ô",
+      "age": "cuối 20",
+      "short_description": "Một cặp đôi sắp chia tay nhưng vẫn gọi chung một món.",
+      "visual_hint": "Một chiếc ô ướt dựng ở cửa, hai người ngồi cách nhau nửa ghế.",
+      "speaking_style": "Nói với chủ quán nhiều hơn nói với nhau.",
+      "known_preferences": ["ấm", "chia sẻ"],
+      "disliked_flavors": [],
+      "memory_dish": "com_rang_trung",
+      "hidden_wound": "Có những cuộc chia tay không vì hết thương.",
+      "keepsake_item": "Một chiếc vé xem phim đã gấp đôi."
+    },
+    "y_ta": {
+      "name": "Mai",
+      "age": "khoảng 34",
+      "short_description": "Y tá trực đêm ở bệnh viện gần đó.",
+      "visual_hint": "Tóc buộc vội, cổ tay còn vết dây khẩu trang.",
+      "speaking_style": "Rõ ràng, thực tế, nhưng hay ngừng giữa câu.",
+      "known_preferences": ["nhẹ bụng", "ấm"],
+      "disliked_flavors": ["quá đậm"],
+      "memory_dish": "sup_nong_rau_thom",
+      "hidden_wound": "Đã quen chăm người khác đến mức quên hỏi mình mệt chưa.",
+      "keepsake_item": "Một cây bút bi bệnh viện hết mực."
+    },
+    "dev": {
+      "name": "Khoa",
+      "age": "khoảng 29",
+      "short_description": "Một lập trình viên mất ngủ, gọi món như debug cảm xúc.",
+      "visual_hint": "Mắt thâm, áo hoodie, tay vẫn bấm phím tưởng tượng.",
+      "speaking_style": "Khô khan, hay ví von bằng lỗi phần mềm rồi tự cười.",
+      "known_preferences": ["tỉnh vừa", "ít ngọt"],
+      "disliked_flavors": ["quá ngọt"],
+      "memory_dish": "bac_xiu_am",
+      "hidden_wound": "Không biết mình đang nghỉ hay chỉ đang chờ lỗi tiếp theo.",
+      "keepsake_item": "Một mẩu giấy ghi: 'Không phải lỗi nào cũng cần sửa ngay.'"
+    }
+  },
+  "nights": [
+    {
+      "night_number": 1,
+      "date_label": "Đêm 1 - Mưa vừa",
+      "weather": "Mưa rơi đều trên mái tôn. Hẻm nhỏ loang ánh vàng từ quán.",
+      "ambience": "mưa, quạt cũ, xe máy xa xa",
+      "opening_text": "22:07. Bạn kéo cửa sắt lên một nửa. Con mèo nằm gần chậu cây mở mắt nhìn rồi lại ngủ. Đêm đầu tiên của demo bắt đầu.",
+      "prep_notes": ["Lau quầy gỗ.", "Bật radio nhỏ.", "Đặt sẵn nồi cháo trắng sau bếp."],
+      "visits": [
+        {
+          "customer_id": "tai_xe",
+          "mood": "vui vẻ nhưng mệt",
+          "arrival": "Một người trẻ đội mũ bảo hiểm bước vào, áo mưa nhỏ nước xuống thảm.",
+          "lines": ["Minh: Cho em cà phê đen nhé. Đêm nay app nổ đơn như pháo.", "Minh: Nói vậy thôi chứ mưa kiểu này, ai cũng muốn về nhà. Trừ mấy đứa như em."],
+          "choices": [
+            {"text": "Hỏi nhẹ: 'Chạy từ mấy giờ rồi?'", "response": "Minh cười, nhưng bàn tay bóp cổ tay còn lại. 'Từ chiều. Em tính thêm hai cuốc nữa rồi nghỉ.'", "note": "Minh hay nói 'thêm hai cuốc nữa' như một cách trì hoãn nghỉ ngơi."},
+            {"text": "Im lặng đặt khăn khô lên quầy.", "response": "Minh nhìn cái khăn, ngập ngừng rồi lấy lau tóc. 'Quán anh/chị chu đáo ghê.'", "note": "Minh dễ đón nhận sự quan tâm nếu nó không quá trực tiếp."},
+            {"text": "Đùa nhẹ: 'Quán không tính phí trú mưa.'", "response": "Minh bật cười. 'Vậy em trú thêm mười phút, khỏi tính vào doanh thu nha.'", "note": "Minh dùng hài hước để che mệt."}
+          ],
+          "good_recipes": ["ca_phe_den_nong", "mi_trung"],
+          "okay_recipes": ["ca_phe_sua", "bac_xiu_am"],
+          "memory_recipe": "",
+          "recipe_reactions": {
+            "good": ["Minh uống một ngụm, vai thả xuống một chút. 'Đúng thứ em cần. Đắng thiệt, nhưng dễ chịu.'"],
+            "okay": ["Minh gật gù. 'Ổn đó. Chắc đêm nay em không nên uống quá gắt.'"],
+            "bad": ["Minh cười lịch sự. 'Ngon, mà hơi không đúng mood mưa chạy đơn lắm.'"]
+          },
+          "notes_unlock": ["Minh cần tỉnh táo, nhưng dấu hiệu mệt rõ hơn lời nói."],
+          "trust": 1
+        },
+        {
+          "customer_id": "van_phong",
+          "mood": "bình tĩnh quá mức",
+          "arrival": "Một người phụ nữ bước vào với chiếc túi tote vải. Cô đứng nhìn menu viết tay hơi lâu.",
+          "lines": ["Linh: Có món nào không quá ngọt không?", "Linh: Hôm nay tôi... rảnh hơn thường lệ. Chắc vậy."],
+          "choices": [
+            {"text": "Không hỏi ngay, chỉ nói: 'Có trà hoa cúc mật ong.'", "response": "Linh thở ra, như được phép không giải thích. 'Nghe được đấy.'", "note": "Linh không thích bị hỏi dồn khi vừa đến."},
+            {"text": "Hỏi: 'Một ngày khó à?'", "response": "Cô nhìn thẻ nhân viên đã tháo dây trong túi. 'Khó thì không. Trống thì đúng hơn.'", "note": "Linh vừa rời một nơi quen thuộc."},
+            {"text": "Đổi chủ đề sang thời tiết.", "response": "Linh nhìn ra cửa. 'Mưa làm người ta có cớ ngồi lâu hơn, nhỉ?'", "note": "Linh cần không gian hơn là lời khuyên."}
+          ],
+          "good_recipes": ["tra_hoa_cuc_mat_ong", "tra_sen_am"],
+          "okay_recipes": ["cacao_nong", "bac_xiu_am"],
+          "memory_recipe": "",
+          "recipe_reactions": {
+            "good": ["Linh giữ ly bằng cả hai tay. 'Ít ngọt thật. Cảm ơn vì không tự động cho nhiều đường.'"],
+            "okay": ["Cô nhấp một ngụm. 'Cũng dễ uống. Có lẽ tối nay tôi cần thứ ấm hơn là thứ đúng.'"],
+            "bad": ["Linh mỉm cười nhỏ. 'Hơi mạnh với tôi hôm nay, nhưng không sao.'"]
+          },
+          "notes_unlock": ["Linh thích vị thanh, ít ngọt; cô vừa có một khoảng trống lớn trong lịch sinh hoạt."],
+          "trust": 1
+        },
+        {
+          "customer_id": "bao_ve",
+          "mood": "lặng lẽ",
+          "arrival": "Một ông chú mặc áo bảo vệ cũ bước vào, chọn ghế gần góc tường.",
+          "lines": ["Chú Bảy: Có gì nóng nóng, dễ ăn không?", "Chú Bảy đặt chiếc đồng hồ xuống bàn, chỉnh lại kim dù nó vẫn chạy đúng."],
+          "choices": [
+            {"text": "Hỏi: 'Chú ăn mặn được không?'", "response": "Ông gật đầu. 'Ít thôi. Khuya rồi, ăn nhiều khó ngủ.'", "note": "Chú Bảy ăn rất đơn giản, ít gia vị."},
+            {"text": "Im lặng rót thêm nước nóng.", "response": "Ông nhìn làn hơi bốc lên. 'Lâu rồi mới thấy quán nào để nước nóng sẵn.'", "note": "Chú Bảy để ý những chăm sóc rất nhỏ."},
+            {"text": "Nhắc: 'Mưa này ca đêm chắc lạnh.'", "response": "Ông cười khẽ. 'Lạnh thì mặc áo. Vắng mới khó.'", "note": "Chú Bảy sợ sự vắng hơn cái lạnh."}
+          ],
+          "good_recipes": ["chao_trang_trung", "tra_gung_mat_ong"],
+          "okay_recipes": ["banh_mi_chao_nho", "sup_nong_rau_thom"],
+          "memory_recipe": "",
+          "recipe_reactions": {
+            "good": ["Ông ăn chậm. 'Ừm. Đơn giản vậy là được rồi.'"],
+            "okay": ["Ông gật đầu. 'No bụng. Chút nữa đứng gác đỡ lạnh.'"],
+            "bad": ["Ông không chê, chỉ ăn rất chậm. 'Món này chắc hợp người trẻ hơn.'"]
+          },
+          "notes_unlock": ["Chú Bảy hay nhìn đồng hồ và chọn món ít gia vị."],
+          "trust": 1
+        }
+      ],
+      "closing_reflection": "04:03. Quán im dần. Sổ ghi chép có ba cái tên mới, mỗi cái tên còn nhiều khoảng trắng."
+    },
+    {
+      "night_number": 2,
+      "date_label": "Đêm 2 - Gió lạnh sau mưa",
+      "weather": "Mưa tạnh, nhưng hẻm vẫn lạnh. Mùi đất ẩm và cà phê phin hòa vào nhau.",
+      "ambience": "gió nhẹ, chuông cửa, radio rè",
+      "opening_text": "Bạn dán lại góc menu bị ẩm. Cô Hạnh bán hoa để quên một cánh hồng trước cửa từ lúc nào.",
+      "prep_notes": ["Mở khóa món: Mì bò ít cay.", "Mở khóa món: Trà đào ít ngọt.", "Nồi nước dùng còn đủ cho vài phần."],
+      "visits": [
+        {
+          "customer_id": "sinh_vien",
+          "mood": "hoảng nhưng cố hài hước",
+          "arrival": "Một sinh viên lao vào như bị deadline đuổi sát lưng.",
+          "lines": ["An: Anh/chị ơi có gì khiến người ta tỉnh mà không run tay không?", "An: Em còn ba màn hình, hai lỗi không hiểu, một đời tự nghi ngờ bản thân."],
+          "choices": [
+            {"text": "Hỏi: 'Em cần tỉnh, hay cần bình tĩnh?'", "response": "An khựng lại. 'Ủa... khác nhau hả anh/chị? Chắc là bình tĩnh. Nhưng vẫn phải tỉnh.'", "note": "An nhầm kiệt sức với thiếu cà phê."},
+            {"text": "Đùa nhẹ: 'Một đời thì quán chưa sửa được, hai lỗi có thể.'", "response": "An cười phá lên rồi xấu hổ. 'Em cần câu đó hơn em tưởng.'", "note": "An phản ứng tốt với hài hước nhẹ."},
+            {"text": "Im lặng kéo ghế gần ổ cắm.", "response": "An nhìn ổ cắm như nhìn thấy phao cứu sinh. 'Em biết ơn cái ghế này sâu sắc.'", "note": "An cần được bớt hoảng trước khi được khuyên."}
+          ],
+          "good_recipes": ["bac_xiu_am", "sua_dau_nanh_nong", "mi_bo_it_cay"],
+          "okay_recipes": ["ca_phe_sua", "mi_trung"],
+          "memory_recipe": "",
+          "recipe_reactions": {
+            "good": ["An ôm ly/bát bằng hai tay. 'Vừa đủ tỉnh. Não em không còn chạy như xe mất thắng nữa.'"],
+            "okay": ["An gật gù. 'Ổn. Nếu em sống sót qua đêm nay em sẽ quay lại báo cáo.'"],
+            "bad": ["An chớp mắt nhanh. 'Ngon nhưng chắc tim em đang mở thêm tab.'"]
+          },
+          "notes_unlock": ["An cần tỉnh vừa phải, không quá đắng; ổ cắm là cứu tinh."],
+          "trust": 1
+        },
+        {
+          "customer_id": "ban_hoa",
+          "mood": "dịu và xa xăm",
+          "arrival": "Cô Hạnh bước vào với vài cành hoa còn sót, áo khoác phảng phất mùi lá.",
+          "lines": ["Cô Hạnh: Đêm qua tôi đi ngang, thấy quán còn sáng.", "Cô Hạnh: Thành phố khuya có nhiều người chưa muốn về, ha."],
+          "choices": [
+            {"text": "Hỏi: 'Cô bán đến giờ này luôn ạ?'", "response": "Cô cười. 'Hoa không bán được ban ngày thì đi cùng tôi ban đêm.'", "note": "Cô Hạnh không xem hoa ế là thất bại."},
+            {"text": "Im lặng nhận một cành hoa cô đặt lên quầy.", "response": "Cô gật đầu, như hai người vừa thống nhất một điều nhỏ.", "note": "Cô Hạnh thích những cử chỉ không cần nhiều lời."},
+            {"text": "Nói: 'Quán có chỗ cho hoa nếu cô không ngại.'", "response": "Mắt cô sáng lên một chút. 'Vậy mai tôi đem cái lọ nhỏ.'", "note": "Cô Hạnh có thể để lại một lọ hoa cho quán."}
+          ],
+          "good_recipes": ["tra_sen_am", "sup_nong_rau_thom"],
+          "okay_recipes": ["tra_hoa_cuc_mat_ong", "chanh_muoi_am"],
+          "memory_recipe": "",
+          "recipe_reactions": {
+            "good": ["Cô Hạnh nhắm mắt một lát. 'Trà thơm. Không cần thơm quá. Vậy là vừa.'"],
+            "okay": ["Cô nhìn ly rồi nhìn ra hẻm. 'Cũng hợp một đêm nhiều gió.'"],
+            "bad": ["Cô cười hiền. 'Món này chắc để người khác uống vui hơn tôi.'"]
+          },
+          "notes_unlock": ["Cô Hạnh thích vị thanh, nhẹ; cô hứa có thể mang lọ hoa đến."],
+          "trust": 1
+        },
+        {
+          "customer_id": "dev",
+          "mood": "mất ngủ",
+          "arrival": "Một người mặc hoodie bước vào, nhìn menu như đọc log lỗi.",
+          "lines": ["Khoa: Có món nào reboot người nhưng không làm cháy CPU không?", "Khoa: Xin lỗi. Ý tôi là... thứ gì tỉnh vừa thôi."],
+          "choices": [
+            {"text": "Đáp theo kiểu debug: 'Tắt bớt tiến trình trước đã.'", "response": "Khoa bật cười rất nhỏ. 'Quán này hiểu ngôn ngữ của người mất ngủ à?'", "note": "Khoa dùng kỹ thuật để nói vòng quanh cảm xúc."},
+            {"text": "Hỏi: 'Anh ngủ được mấy tiếng?'", "response": "Khoa nhìn lên trần. 'Nếu tính chớp mắt khi build thì nhiều.'", "note": "Khoa đang thiếu ngủ nghiêm trọng."},
+            {"text": "Im lặng giảm âm radio.", "response": "Khoa nhận ra ngay. 'Cảm ơn. Tiếng nhỏ lại dễ thở hơn.'", "note": "Khoa nhạy với tiếng ồn khi mất ngủ."}
+          ],
+          "good_recipes": ["bac_xiu_am", "tra_dao_it_ngot"],
+          "okay_recipes": ["ca_phe_sua", "sua_nong_mat_ong"],
+          "memory_recipe": "",
+          "recipe_reactions": {
+            "good": ["Khoa uống chậm. 'Đúng mức. Không quá ngọt. Không kích hoạt cảnh báo nội bộ.'"],
+            "okay": ["Anh gật đầu. 'Tạm ổn. Có lẽ vấn đề không nằm ở đồ uống.'"],
+            "bad": ["Khoa nhăn mặt nhẹ. 'Hơi quá tải với hệ thống hiện tại.'"]
+          },
+          "notes_unlock": ["Khoa cần tỉnh vừa, ít ngọt, ít tiếng ồn."],
+          "trust": 1
+        }
+      ],
+      "closing_reflection": "03:58. Trên quầy có một cánh hoa, một vệt cà phê, và ổ cắm vẫn còn ấm."
+    },
+    {
+      "night_number": 3,
+      "date_label": "Đêm 3 - Thành phố oi nhẹ",
+      "weather": "Không mưa. Đường ướt đã khô, nhưng không khí vẫn nặng như một câu chưa nói.",
+      "ambience": "quạt cũ, tiếng muỗng chạm ly, xe rác xa xa",
+      "opening_text": "Bạn thử viết thêm vài món ít ngọt lên bảng. Con mèo ngồi chắn cửa như quản lý ca đêm.",
+      "prep_notes": ["Mở khóa món: Chanh muối ấm.", "Một khách để lại lời nhắn: 'Ổ cắm tối qua cứu mạng em.'"],
+      "visits": [
+        {
+          "customer_id": "van_phong",
+          "mood": "trống rỗng chuyển thành tự trách",
+          "arrival": "Linh quay lại. Lần này cô không đứng lâu trước menu, nhưng ngón tay cứ chạm vào thẻ nhân viên trong túi.",
+          "lines": ["Linh: Tôi nghỉ rồi.", "Linh: Nói ra nghe nhẹ. Nhưng lúc không phải đi làm nữa, tôi lại không biết đi đâu."],
+          "choices": [
+            {"text": "Hỏi thêm: 'Cô nhớ điều gì nhất ở mình trước công việc đó?'", "response": "Linh im một lúc. 'Tôi từng vẽ. Xấu lắm, nhưng vui.'", "note": "Linh từng thích vẽ trước khi công việc nuốt hết thời gian."},
+            {"text": "Lắng nghe im lặng.", "response": "Cô nhìn hơi nước trên ly chưa có. 'Cảm ơn vì không nói tôi phải mạnh mẽ.'", "note": "Linh không cần khẩu hiệu; cô cần được phép yếu."},
+            {"text": "Đùa rất nhẹ: 'Không đi đâu cũng là một lịch trình.'", "response": "Linh cười thật, ngắn thôi. 'Lịch trình đó tôi có thể theo được.'", "note": "Linh có thể cười nếu không bị ép vui."}
+          ],
+          "good_recipes": ["cacao_nong", "tra_hoa_cuc_mat_ong", "com_rang_trung"],
+          "okay_recipes": ["tra_sen_am", "tra_dao_it_ngot"],
+          "memory_recipe": "cacao_nong",
+          "recipe_reactions": {
+            "memory": ["Linh giữ cốc cacao lâu hơn cần thiết. 'Hồi nhỏ tôi vẽ bằng bút chì, mẹ hay pha cacao loãng. Tôi tưởng mình quên rồi.'", "Cô cười, mắt ướt nhưng không vội lau. 'Có lẽ tôi sẽ mua lại một cuốn sketchbook.'"],
+            "good": ["Linh thở ra. 'Món này làm tôi bớt thấy mình vừa phá hỏng đời mình.'"],
+            "okay": ["Cô gật đầu. 'Dễ chịu. Chưa đúng hẳn, nhưng dễ chịu.'"],
+            "bad": ["Linh nhấp môi rồi đặt xuống. 'Hôm nay chắc tôi không hợp vị mạnh.'"]
+          },
+          "notes_unlock": ["Món ký ức của Linh là cacao nóng; nó gợi lại ước mơ vẽ cũ."],
+          "unlock_recipes": ["chanh_muoi_am"],
+          "trust": 2
+        },
+        {
+          "customer_id": "tai_xe",
+          "mood": "kiệt sức nhưng vẫn gồng",
+          "arrival": "Minh vào muộn hơn hôm trước. Áo khoác khô, nhưng mắt cậu đỏ.",
+          "lines": ["Minh: Cho em cà phê đen mạnh hơn hôm bữa được không?", "Minh: Không sao đâu. Em quen rồi. Chạy đêm mà ngủ nhiều quá thì lấy gì trả tiền phòng."],
+          "choices": [
+            {"text": "Nhắc lại: 'Hôm trước em nói thêm hai cuốc nữa rồi nghỉ.'", "response": "Minh cúi đầu. 'Em nói câu đó hơi nhiều, ha.'", "note": "Minh nhận ra mình lặp lại lời hứa nghỉ nhưng chưa làm."},
+            {"text": "Im lặng đặt menu món ấm trước mặt.", "response": "Minh nhìn menu, không gọi cà phê ngay. 'Anh/chị đang dụ em ăn hả?'", "note": "Minh có thể cần món không caffeine hơn là cà phê."},
+            {"text": "Hỏi: 'Nếu tối nay không mạnh thêm thì sao?'", "response": "Minh cười khô. 'Thì chắc em phải nghe cơ thể mình phàn nàn.'", "note": "Minh biết mình kiệt sức nhưng sợ dừng."}
+          ],
+          "good_recipes": ["sua_nong_mat_ong", "mi_trung", "mi_bo_it_cay"],
+          "okay_recipes": ["bac_xiu_am", "tra_gung_mat_ong"],
+          "memory_recipe": "sua_nong_mat_ong",
+          "recipe_reactions": {
+            "memory": ["Minh nhìn ly sữa nóng, định đùa rồi thôi. 'Hồi nhỏ bệnh, mẹ em hay pha như vậy. Lâu rồi em toàn tự bảo mình không được bệnh.'", "Cậu uống chậm. 'Chắc tối nay em tắt app sớm. Một lần thôi cũng được.'"],
+            "good": ["Minh ăn/uống chậm hơn thường lệ. 'Có khi em cần cái này hơn cà phê thật.'"],
+            "okay": ["Cậu gật. 'Đỡ gắt hơn. Em vẫn tỉnh, nhưng không bị đẩy đi tiếp.'"],
+            "bad": ["Minh cười cho qua. 'Ngon, mà chắc cơ thể em đang biểu tình món khác.'"]
+          },
+          "notes_unlock": ["Món đúng lúc của Minh đêm kiệt sức là sữa nóng mật ong, không phải cà phê mạnh."],
+          "trust": 2
+        },
+        {
+          "customer_id": "cap_doi",
+          "mood": "im lặng khó xử",
+          "arrival": "Hai người bước vào dưới cùng một chiếc ô. Họ không cãi nhau, nhưng cái im lặng rất rõ.",
+          "lines": ["Người nữ: Có món gì ăn chung được không?", "Người nam: Gì cũng được. À... không cay."],
+          "choices": [
+            {"text": "Không hỏi chuyện riêng, chỉ gợi ý món nóng.", "response": "Cả hai cùng gật. Việc cùng đồng ý một điều nhỏ khiến họ bớt căng.", "note": "Có những khách cần quán giữ khoảng cách."},
+            {"text": "Đặt thêm hai chén nhỏ.", "response": "Người nữ nhìn hai cái chén, khẽ nói: 'Cảm ơn.'", "note": "Một món chia được có thể giúp họ nói câu cuối tử tế hơn."},
+            {"text": "Nói: 'Mưa tạnh rồi, nhưng chưa cần đi ngay.'", "response": "Người nam nhìn ra cửa. 'Ừ. Chưa cần.'", "note": "Họ đang trì hoãn một lời chia tay."}
+          ],
+          "good_recipes": ["com_rang_trung", "banh_mi_chao_nho"],
+          "okay_recipes": ["mi_trung", "sup_nong_rau_thom"],
+          "memory_recipe": "",
+          "recipe_reactions": {
+            "good": ["Họ ăn chậm. Có lúc hai chiếc muỗng chạm nhau, cả hai cùng cười vì ngượng. Không có phép màu, chỉ có một bữa ăn tử tế."],
+            "okay": ["Món ăn làm khoảng im lặng bớt sắc. Họ vẫn chưa nói nhiều, nhưng vai đã thả xuống."],
+            "bad": ["Họ cảm ơn lịch sự. Đêm nay có lẽ món ăn không chen được vào câu chuyện của họ."]
+          },
+          "notes_unlock": ["Một cặp đôi dưới một ô cần món có thể chia, không cần lời khuyên."],
+          "trust": 0
+        }
+      ],
+      "closing_reflection": "04:10. Một ly cacao đã mở ra màu chì cũ. Một ly sữa nóng giữ Minh lại khỏi thêm một cuốc."
+    },
+    {
+      "night_number": 4,
+      "date_label": "Đêm 4 - Mưa lớn",
+      "weather": "Mưa nặng hạt. Nước chảy thành dòng nhỏ ngoài cửa quán.",
+      "ambience": "mưa lớn, nồi nước sôi, chuông cửa thưa",
+      "opening_text": "Bạn đặt thêm khăn khô cạnh cửa. Cô Hạnh thật sự mang một lọ hoa nhỏ đến, chưa cắm gì vào.",
+      "prep_notes": ["Mở khóa món: Cháo hành tiêu thật nhẹ.", "Lọ hoa nhỏ xuất hiện trên quầy."],
+      "visits": [
+        {
+          "customer_id": "bao_ve",
+          "mood": "mở lòng rất chậm",
+          "arrival": "Chú Bảy vào khi mưa lớn nhất. Ông phủi nước khỏi vai áo, chiếc ảnh nhỏ trong ví lộ ra một góc.",
+          "lines": ["Chú Bảy: Hồi trước mưa kiểu này, nhà tôi hay nấu cháo.", "Chú Bảy dừng lại, như lỡ nói quá nhiều."],
+          "choices": [
+            {"text": "Lắng nghe im lặng.", "response": "Ông không nhìn bạn, nhưng tiếp tục. 'Bà nhà tôi nấu nhạt lắm. Tôi cứ chê. Giờ lại nhớ cái nhạt đó.'", "note": "Chú Bảy nhớ món cháo nhạt của vợ."},
+            {"text": "Hỏi rất nhẹ: 'Cháo có hành không chú?'", "response": "Ông gật chậm. 'Có. Hành, chút tiêu. Mà tiêu cũng ít thôi.'", "note": "Món ký ức của Chú Bảy: cháo hành, tiêu thật nhẹ."},
+            {"text": "Đổi chủ đề sang cái đồng hồ.", "response": "Ông vuốt mặt kính. 'Đồng hồ của bả mua. Tôi chỉnh hoài vì sợ nó dừng.'", "note": "Chiếc đồng hồ là vật gắn với vợ Chú Bảy."}
+          ],
+          "good_recipes": ["chao_trang_trung", "tra_gung_mat_ong"],
+          "okay_recipes": ["banh_mi_chao_nho", "sup_nong_rau_thom"],
+          "memory_recipe": "chao_hanh_tieu_that_nhe",
+          "recipe_reactions": {
+            "memory": ["Ông đặt muỗng xuống sau miếng đầu tiên. Rất lâu ông không nói.", "Chú Bảy: 'Đúng rồi. Nhạt vậy đó. Hồi đó tôi cứ bảo thêm nước mắm. Bả cười, nói khuya rồi ăn nhạt thôi.'", "Ông lau mắt bằng mu bàn tay, không giấu. 'Tôi nhớ tiếng bả cười hơn món cháo.'"],
+            "good": ["Ông ăn hết bát, chậm và cẩn thận. 'Ấm. Cảm ơn.'"],
+            "okay": ["Ông gật, nhưng mắt vẫn nhìn về nồi cháo. 'No bụng rồi.'"],
+            "bad": ["Ông ăn vài muỗng rồi đặt xuống. 'Không phải lỗi món. Chắc tối nay tôi nhớ thứ khác.'"]
+          },
+          "notes_unlock": ["Khoảnh khắc món ký ức: Chú Bảy nhớ tiếng cười của vợ qua bát cháo hành tiêu rất nhẹ."],
+          "keepsake": "Một tấm ảnh đen trắng nhỏ đặt cạnh lọ hoa.",
+          "trust": 3
+        },
+        {
+          "customer_id": "y_ta",
+          "mood": "mệt lặng",
+          "arrival": "Một y tá bước vào, giày còn dính nước mưa. Cô ngồi xuống như vừa hết ca mà chưa hết trách nhiệm.",
+          "lines": ["Mai: Có gì nhẹ bụng không? Tôi ăn nhanh rồi quay lại bệnh viện.", "Mai: Không cần ngon quá đâu. Chỉ cần ấm."],
+          "choices": [
+            {"text": "Hỏi: 'Chị có mười phút không?'", "response": "Mai nhìn đồng hồ. 'Có. Nhưng đầu tôi vẫn ở phòng trực.'", "note": "Mai có rất ít thời gian cho chính mình."},
+            {"text": "Im lặng rót nước ấm trước.", "response": "Cô uống nửa ly nước trước khi gọi món. 'Tôi quên mình khát.'", "note": "Mai hay quên nhu cầu cơ bản của bản thân."},
+            {"text": "Nói: 'Không cần ăn nhanh ở đây.'", "response": "Mai nhìn bạn như nghe một quy định lạ. 'Vậy tôi thử ăn chậm năm phút.'", "note": "Mai cần được nhắc rằng cô cũng được nghỉ."}
+          ],
+          "good_recipes": ["sup_nong_rau_thom", "chao_trang_trung", "sua_dau_nanh_nong"],
+          "okay_recipes": ["tra_gung_mat_ong", "tra_hoa_cuc_mat_ong"],
+          "memory_recipe": "",
+          "recipe_reactions": {
+            "good": ["Mai ăn chậm đúng năm phút, rồi thêm hai phút nữa. 'Ấm thật. Tôi tưởng mình chỉ cần no.'"],
+            "okay": ["Cô gật. 'Dễ chịu. Lần sau chắc tôi gọi món gì có thể ăn được.'"],
+            "bad": ["Mai mỉm cười mệt. 'Hơi đậm với bụng tôi lúc này.'"]
+          },
+          "notes_unlock": ["Mai làm ca đêm ở bệnh viện; cô cần món nhẹ bụng và được phép ăn chậm."],
+          "trust": 1
+        },
+        {
+          "customer_id": "ban_hoa",
+          "mood": "ấm áp nhưng cô đơn",
+          "arrival": "Cô Hạnh mang theo ba cành hoa nhỏ, cắm vào chiếc lọ đã để trên quầy.",
+          "lines": ["Cô Hạnh: Quán có hoa rồi nhìn đỡ một mình hơn.", "Cô Hạnh: Mà lạ ha, hoa bán không hết lại có chỗ ở tốt hơn."],
+          "choices": [
+            {"text": "Nói: 'Quán cảm ơn cô.'", "response": "Cô cười. 'Quán nói được vậy chắc khách đông lắm.'", "note": "Lọ hoa khiến quán có cảm giác được chăm sóc."},
+            {"text": "Hỏi: 'Cô hay giữ lại hoa nào cho mình?'", "response": "Cô nhìn mấy cành nhỏ. 'Hoa sắp héo. Tôi thấy chúng thật thà.'", "note": "Cô Hạnh dịu dàng với những thứ sắp bị bỏ lại."},
+            {"text": "Im lặng chỉnh lọ hoa ngay ngắn.", "response": "Cô nhìn động tác đó rất lâu. 'Vậy là chúng ở lại thật.'", "note": "Cô Hạnh để lại hoa như để lại một phần sự dịu dàng."}
+          ],
+          "good_recipes": ["tra_sen_am", "chanh_muoi_am", "sup_nong_rau_thom"],
+          "okay_recipes": ["tra_hoa_cuc_mat_ong", "sua_nong_mat_ong"],
+          "memory_recipe": "",
+          "recipe_reactions": {
+            "good": ["Cô Hạnh đặt tay gần ly/bát. 'Có những thứ ấm vừa đủ để người ta không thấy mình thừa ra.'"],
+            "okay": ["Cô gật. 'Dịu. Đêm mưa cần vậy.'"],
+            "bad": ["Cô cười nhẹ. 'Món này sáng hơn tâm trạng tôi hôm nay.'"]
+          },
+          "notes_unlock": ["Cô Hạnh tặng quán một lọ hoa nhỏ; quán bắt đầu tích lũy dấu vết của khách."],
+          "keepsake": "Một lọ hoa nhỏ đặt bên cạnh radio.",
+          "trust": 2
+        }
+      ],
+      "closing_reflection": "04:18. Mưa vẫn rơi, nhưng trong quán có một lọ hoa và một tấm ảnh. Những thứ nhỏ biết ở lại."
+    },
+    {
+      "night_number": 5,
+      "date_label": "Đêm 5 - Sau cơn mưa dài",
+      "weather": "Trời ngớt mưa. Đèn đường phản chiếu trên mặt hẻm như những vệt trà sen.",
+      "ambience": "mưa thưa, radio nhạc rất nhỏ, mèo khẽ trở mình",
+      "opening_text": "Bạn mở cửa sớm hơn vài phút. Trên kệ, tấm ảnh của Chú Bảy đứng cạnh lọ hoa của cô Hạnh. Quán nhỏ trông như đã nhớ được vài người.",
+      "prep_notes": ["Mở khóa món: Trà sen đêm mưa.", "Đêm cuối demo sẽ khép lại một tuyến truyện và để lại vài câu hỏi."],
+      "visits": [
+        {
+          "customer_id": "sinh_vien",
+          "mood": "bớt hoảng, vẫn lo",
+          "arrival": "An quay lại, lần này không chạy. Cậu đặt laptop xuống nhưng chưa mở ra ngay.",
+          "lines": ["An: Em nộp rồi.", "An: Chưa biết điểm. Nhưng lạ là em vẫn muốn sửa tiếp, không phải vì sợ, mà vì... em thấy vui lại một chút."],
+          "choices": [
+            {"text": "Nhắc lại: 'Vậy là không chỉ để sống sót qua deadline.'", "response": "An gật mạnh. 'Đúng! Em quên mất hồi đầu em làm vì thấy vui.'", "note": "An bắt đầu tìm lại niềm vui làm vì bản thân."},
+            {"text": "Đùa nhẹ: 'Ổ cắm vẫn được đặt tên trong credits chứ?'", "response": "An cười. 'Ổ cắm, quán, và ly bạc xỉu. Top ba nhân vật phụ.'", "note": "An đã có thể đùa mà không hoảng."},
+            {"text": "Im lặng để cậu tự nói tiếp.", "response": "An nhìn quanh quán. 'Em nghĩ em không cần giỏi nhất để được tiếp tục làm.'", "note": "An nói được điều cậu cần tự nghe."}
+          ],
+          "good_recipes": ["sua_dau_nanh_nong", "bac_xiu_am", "mi_bo_it_cay"],
+          "okay_recipes": ["ca_phe_sua", "mi_trung"],
+          "memory_recipe": "sua_dau_nanh_nong",
+          "recipe_reactions": {
+            "memory": ["An cầm ly sữa đậu nành nóng, mắt sáng lên. 'Hồi trước trước cổng trường cấp ba có cô bán món này. Em hay mua sau giờ tin học.'", "Cậu cười nhỏ. 'Chắc em thích làm mấy thứ này trước khi biết so sánh mình với người khác.'"],
+            "good": ["An ăn/uống hết sạch. 'Đêm nay em làm thêm, nhưng vì muốn làm đẹp hơn. Khác ghê.'"],
+            "okay": ["An gật gù. 'Ổn. Không phải món ký ức, nhưng ổn.'"],
+            "bad": ["An hơi nhăn mặt. 'Hơi lệch mood ăn mừng nộp bài.'"]
+          },
+          "notes_unlock": ["Món ký ức của An là sữa đậu nành nóng trước cổng trường; cậu nhớ lại niềm vui ban đầu."],
+          "keepsake": "Một bản phác thảo giao diện quán vẽ trong lúc chờ mì.",
+          "trust": 2
+        },
+        {
+          "customer_id": "ban_hoa",
+          "mood": "dịu dàng hơn thường lệ",
+          "arrival": "Cô Hạnh ghé khi mưa chỉ còn lất phất. Hôm nay cô không mang hoa bán, chỉ mang một cành sen nhỏ.",
+          "lines": ["Cô Hạnh: Hôm nay tôi giữ lại cành này cho quán.", "Cô Hạnh: Không phải vì nó ế. Vì nó hợp chỗ này."],
+          "choices": [
+            {"text": "Hỏi: 'Cô uống trà sen nhé?'", "response": "Cô nhìn bạn, ngạc nhiên rồi vui. 'Anh/chị nhớ mùi trà tôi thích à?'", "note": "Cô Hạnh nhận ra quán nhớ sở thích của mình."},
+            {"text": "Im lặng cắm cành sen vào lọ.", "response": "Cô Hạnh nhìn cành sen đứng giữa lọ hoa. 'Đẹp. Không cần nhiều.'", "note": "Cành sen trở thành biểu tượng dịu của quán."},
+            {"text": "Nói: 'Hoa ở đây không cần bán hết mới có giá trị.'", "response": "Cô Hạnh cúi mặt cười. 'Người chắc cũng vậy ha.'", "note": "Cô Hạnh tự nói ra điều cô cần nghe."}
+          ],
+          "good_recipes": ["tra_sen_dem_mua", "tra_sen_am", "sup_nong_rau_thom"],
+          "okay_recipes": ["chanh_muoi_am", "tra_hoa_cuc_mat_ong"],
+          "memory_recipe": "tra_sen_dem_mua",
+          "recipe_reactions": {
+            "memory": ["Cô Hạnh nhấp trà, rất chậm. 'Có gừng một chút. Mưa mà vẫn có mùi sen.'", "Cô đặt cành sen vào lọ. 'Nếu mai quán còn mở, tôi lại ghé. Không mua bán gì cũng được.'"],
+            "good": ["Cô gật. 'Đúng đêm nay. Dịu nhưng không lạnh.'"],
+            "okay": ["Cô mỉm cười. 'Dễ uống. Nhưng hôm nay tôi hơi nhớ mùi sen.'"],
+            "bad": ["Cô không chê. 'Món này hợp một người đang vội hơn tôi.'"]
+          },
+          "notes_unlock": ["Món ký ức của cô Hạnh là trà sen đêm mưa; cô để lại cành sen cho quán."],
+          "keepsake": "Một cành sen nhỏ trong lọ hoa cạnh radio.",
+          "trust": 3
+        },
+        {
+          "customer_id": "bao_ve",
+          "mood": "bình yên hơn",
+          "arrival": "Chú Bảy ghé ngang, không mặc áo mưa. Ông nhìn tấm ảnh trên kệ rồi gật đầu.",
+          "lines": ["Chú Bảy: Tôi định lấy lại ảnh, rồi nghĩ thôi.", "Chú Bảy: Ở đây có người nhìn thấy, chắc bả đỡ buồn."],
+          "choices": [
+            {"text": "Nói: 'Quán sẽ giữ cẩn thận.'", "response": "Ông gật. 'Không cần lau mỗi ngày đâu. Bả không thích phiền.'", "note": "Chú Bảy chọn để ảnh ở quán."},
+            {"text": "Im lặng rót trà gừng.", "response": "Ông nhận ly. 'Biết ý quá ha.'", "note": "Giữa Chú Bảy và quán đã có sự quen thuộc yên lặng."},
+            {"text": "Hỏi: 'Tối nay chú ăn cháo không?'", "response": "Ông cười. 'Không. Hôm nay uống trà thôi. Có những bữa không cần gọi lại kỷ niệm.'", "note": "Chú Bảy không còn bị kỷ niệm kéo đi hoàn toàn."}
+          ],
+          "good_recipes": ["tra_gung_mat_ong", "chao_hanh_tieu_that_nhe"],
+          "okay_recipes": ["chao_trang_trung", "sup_nong_rau_thom"],
+          "memory_recipe": "",
+          "recipe_reactions": {
+            "good": ["Ông uống chậm. 'Ấm rồi. Tối nay vậy là đủ.'"],
+            "okay": ["Ông gật. 'Cũng được. Nhưng hôm nay tôi muốn nhẹ hơn một chút.'"],
+            "bad": ["Ông cười hiền. 'Món ngon, chỉ là tôi đã qua cái đoạn cần nó tối nay.'"]
+          },
+          "notes_unlock": ["Tuyến Chú Bảy khép lại nhẹ: ông để ảnh ở quán và không cần gọi lại nỗi nhớ mỗi đêm."],
+          "trust": 1
+        },
+        {
+          "customer_id": "van_phong",
+          "mood": "chưa ổn nhưng đã chuyển động",
+          "arrival": "Linh ghé cuối cùng, tay cầm một túi giấy nhỏ.",
+          "lines": ["Linh: Tôi mua sketchbook rồi.", "Linh: Chưa vẽ gì. Nhưng mua rồi cũng là một hành động, đúng không?"],
+          "choices": [
+            {"text": "Nói: 'Một trang trắng cũng là bắt đầu.'", "response": "Linh nhìn cuốn sổ. 'Nghe hơi sến. Nhưng tối nay tôi nhận.'", "note": "Linh mua sketchbook, chưa vẽ nhưng đã bắt đầu."},
+            {"text": "Đùa nhẹ: 'Quán nhận tranh treo tường trả bằng cacao.'", "response": "Linh bật cười. 'Vậy tôi phải tập vẽ cái ly trước.'", "note": "Linh có thể quay lại với tranh đầu tiên."},
+            {"text": "Im lặng đặt bút chì cạnh ly.", "response": "Linh chạm vào cây bút. 'Anh/chị chuẩn bị sẵn à?' Cô cười. 'Nguy hiểm thật.'", "note": "Một cây bút chì có thể là lời mời không áp lực."}
+          ],
+          "good_recipes": ["cacao_nong", "tra_hoa_cuc_mat_ong"],
+          "okay_recipes": ["tra_dao_it_ngot", "com_rang_trung"],
+          "memory_recipe": "",
+          "recipe_reactions": {
+            "good": ["Linh uống cacao/trà chậm. 'Tôi chưa biết mình sẽ làm gì tiếp. Nhưng ít nhất tối nay tôi không thấy mình sai hoàn toàn.'"],
+            "okay": ["Cô gật. 'Ổn. Có lẽ lần sau tôi vẫn gọi cacao.'"],
+            "bad": ["Linh mỉm cười. 'Tối nay tôi đang ở một vị khác.'"]
+          },
+          "notes_unlock": ["Linh mua sketchbook; tuyến của cô để lại cliffhanger về bức vẽ đầu tiên."],
+          "keepsake": "Một tấm sticky note ghi: 'Mình có thể bắt đầu lại.'",
+          "trust": 1
+        }
+      ],
+      "closing_reflection": "04:27. Quán tắt bớt đèn. Trong sổ có những câu chưa kết thúc, nhưng không còn trống như đêm đầu."
+    }
+  ],
+  "demo_ending": [
+    "Bạn kéo cửa sắt xuống khi trời vừa xanh.",
+    "Trên kệ có một tấm ảnh, một lọ hoa, một bản phác thảo, và một tờ giấy nhỏ.",
+    "Không ai được chữa lành hoàn toàn chỉ sau vài bát cháo hay ly trà.",
+    "Nhưng có người đã nghỉ một tối. Có người mua lại cuốn sổ vẽ. Có người để một ký ức ở nơi không còn lạnh.",
+    "Quán sẽ lại mở khi thành phố ngủ.",
+    "Demo kết thúc. Cảm ơn bạn đã lắng nghe."
+  ]
+}

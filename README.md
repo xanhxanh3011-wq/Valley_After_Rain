@@ -1,14 +1,16 @@
-# Idea Ready Game
+# Đèn Hẻm Sau Mưa
 
-Godot 4.7 starter project prepared before the final game idea is chosen.
+Godot 4.7 cozy narrative demo about a small late-night cafe in a fictional Vietnamese city.
 
 ## What is ready
 
-- Godot project scaffold with a runnable `ReadyRoom` scene.
-- Input actions for WASD and arrow-key movement.
-- Pixel-perfect 2D rendering defaults.
-- Curated ready-to-use asset subset copied from `D:\GameMaking\game assets`.
-- Asset catalog and license notes in `docs/`.
+- Main menu, settings, credits, save/load.
+- Five-night narrative demo loop.
+- Customer arrivals, dialogue choices, recipe selection, recipe reactions.
+- Notebook for customer notes, keepsakes, and memory dishes.
+- Recipe book with unlock progression.
+- Demo ending screen.
+- Data-driven content in `data/demo_content.json`.
 
 ## Run
 
@@ -18,11 +20,13 @@ Open this folder in Godot 4.7, or run:
 & 'D:\GameMaking\Godot_v4.7-stable_win64.exe\Godot_v4.7-stable_win64_console.exe' --path 'D:\GameMaking\idea-ready-game'
 ```
 
-## Next Decision Needed
+## Design Direction
 
-When the game idea is provided, decide:
+The demo is intentionally not an RPG, not a management sim, and not an arcade cooking game.
 
-- Core genre and camera scale.
-- Player character and movement model.
-- Main map style: `modern_interiors`, `super_retro_world`, or a deliberate mix.
-- First playable loop.
+Core focus:
+
+- Listen to late-night customers.
+- Choose dialogue attitude.
+- Serve the right dish or drink for the moment.
+- Let the notebook collect emotional continuity.
