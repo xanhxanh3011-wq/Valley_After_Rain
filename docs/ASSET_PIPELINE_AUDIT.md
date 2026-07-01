@@ -74,13 +74,18 @@ Walk slicing currently used:
   - `Rect2((12 + i) * 16, 1 * 32, 16, 32)`, `i = 0..5`
 - `walk_right` reuses the same strip with `flip_h = true`.
 
+Seated runtime:
+
+- Seated/chờ ở bàn hiện dùng `idle_down` từ idle sheet.
+- Runtime frame là `Rect2(32, 0, 16, 32)`.
+- `flip_h = false`.
+- Đây là quyết định cố ý vì các `{name}_sit_16x16.png` hiện có trong workspace là side-profile strip, làm NPC ở bàn bị quay ngang.
+
 Sit sheets:
 
 - Pattern: `{name}_sit_16x16.png`
-- If present, `seated_idle` uses the final visible front-facing group:
-  - start column `18`
-  - up to `6` frames
-- If missing, `seated_idle` falls back to `idle_down`.
+- Sit sheets are imported but not used by default.
+- They can be enabled per character later with `use_seated_pose = true` only after visually confirming that the selected frames are front-facing and suitable for a table/counter pose.
 
 ## Runtime Scripts
 
@@ -97,7 +102,15 @@ The controller exposes:
 - `configure(id, config, requested_animation)`
 - `play_named(animation_name)`
 - `set_animation_state(state, direction)`
+- `sit_down()`
 - `face_down_or_seated()`
+
+Scene-level customer walk-in state currently uses:
+
+- `walking_to_seat`
+- `seated_idle`
+
+When the customer reaches the seat, the scene calls `sit_down()`, zeroes velocity, sets `flip_h = false`, and keeps the character on `idle_down`.
 
 ## Previous Bug
 
@@ -108,5 +121,5 @@ The current pipeline uses LimeZu `16x32` character frames only.
 ## Known Limitations
 
 - `walk_up` and `walk_down` are not enabled yet because this pass only validated the clean side-profile walk strip requested for customer entry.
-- Customers without a sit sheet fall back to `idle_down` behind the table/counter.
+- Sit sheets are not used by default because their current visible strips are side-facing; customers use `idle_down` after sitting.
 - The scene still uses some procedural rectangles for large floor/wall/counter blocks, while characters and animated props use asset sheets.

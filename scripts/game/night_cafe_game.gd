@@ -23,6 +23,7 @@ var steam_lines: Array[ColorRect] = []
 var lamp_glows: Array[ColorRect] = []
 var scene_time := 0.0
 var walking_customer: CharacterSpriteController
+var walking_customer_state := "idle"
 var walking_path: Array[Vector2] = []
 var walking_target_index := 0
 var screen_history: Array[String] = []
@@ -582,6 +583,7 @@ func _render_cafe_scene(mode := "idle", customer_id := "", recipe_id := "", resu
 	steam_lines.clear()
 	lamp_glows.clear()
 	walking_customer = null
+	walking_customer_state = "idle"
 	walking_path.clear()
 	walking_target_index = 0
 
@@ -602,7 +604,7 @@ func _render_cafe_scene(mode := "idle", customer_id := "", recipe_id := "", resu
 
 	_add_counter_and_props()
 	_add_tables_and_seats()
-	_add_character_sprite("player", Vector2(640, 196), "brew_idle", Color("#fff3dc"))
+	_add_character_sprite("player", Vector2(640, 236), "idle_down", Color("#fff3dc"))
 
 	var active_customer := customer_id
 	if active_customer != "ban_hoa":
@@ -616,6 +618,8 @@ func _render_cafe_scene(mode := "idle", customer_id := "", recipe_id := "", resu
 	elif mode in ["menu", "prep", "closing", "notebook", "recipes", "ending"]:
 		_add_customer_in_scene("tai_xe", Vector2(610, 238), false)
 
+	_add_counter_front_overlay()
+	_add_table_front_overlays()
 	_add_animated_prop(AssetCatalog.MODERN_ANIMATED_DIR + "animated_cat_32x32.png", Vector2(110, 390), 12, 2.0, 4.0, Color("#ffe8c2"))
 	_add_steam(Vector2(548, 180))
 	_add_steam(Vector2(705, 182))
@@ -686,9 +690,9 @@ func _add_clock(pos: Vector2) -> void:
 	_add_scene_rect(pos + Vector2(21, 22), Vector2(9, 2), Color("#f1d8a0"))
 
 func _add_counter_and_props() -> void:
-	_add_scene_rect(Vector2(304, 150), Vector2(672, 32), Color("#7a4d31"))
-	_add_scene_rect(Vector2(284, 182), Vector2(712, 74), Color("#3a2418"))
-	_add_scene_rect(Vector2(304, 194), Vector2(672, 10), Color("#8f6a45"))
+	_add_scene_rect(Vector2(304, 150), Vector2(672, 32), Color("#7a4d31"), 20)
+	_add_scene_rect(Vector2(284, 182), Vector2(712, 74), Color("#3a2418"), 20)
+	_add_scene_rect(Vector2(304, 194), Vector2(672, 10), Color("#8f6a45"), 20)
 	_add_scene_rect(Vector2(508, 112), Vector2(250, 34), Color("#332016"))
 	_add_animated_prop(AssetCatalog.MODERN_ANIMATED_DIR + "animated_coffee_32x32.png", Vector2(552, 198), 6, 2.0, 4.0, Color("#fff0d0"))
 	_add_animated_prop(AssetCatalog.MODERN_ANIMATED_DIR + "animated_kitchen_pan_with_omelette_32x32.png", Vector2(712, 198), 8, 2.0, 5.0, Color("#fff0d0"))
@@ -698,6 +702,11 @@ func _add_counter_and_props() -> void:
 	_add_scene_rect(Vector2(906, 118), Vector2(14, 26), Color("#4c7a47"))
 	_add_scene_rect(Vector2(930, 130), Vector2(14, 18), Color("#5c8a52"))
 	_add_scene_label("quầy pha", Vector2(584, 210), Vector2(120, 22), Color("#9d8464"), 13)
+
+func _add_counter_front_overlay() -> void:
+	_add_scene_rect(Vector2(284, 206), Vector2(712, 50), Color("#2b1b12"), 260)
+	_add_scene_rect(Vector2(304, 206), Vector2(672, 8), Color("#8f6a45"), 261)
+	_add_scene_rect(Vector2(304, 250), Vector2(672, 6), Color("#1b1009"), 261)
 
 func _add_tables_and_seats() -> void:
 	_add_scene_rect(Vector2(142, 244), Vector2(108, 66), Color("#3a2418"))
@@ -709,11 +718,19 @@ func _add_tables_and_seats() -> void:
 	for pos in [Vector2(590, 262), Vector2(652, 262), Vector2(714, 262)]:
 		_add_scene_rect(pos, Vector2(34, 28), Color("#2a1a12"))
 
+func _add_table_front_overlays() -> void:
+	_add_scene_rect(Vector2(158, 278), Vector2(76, 16), Color("#6b4728"), 340)
+	_add_scene_rect(Vector2(1024, 278), Vector2(76, 16), Color("#6b4728"), 340)
+	_add_scene_rect(Vector2(374, 330), Vector2(78, 16), Color("#6b4728"), 380)
+	for pos in [Vector2(590, 274), Vector2(652, 274), Vector2(714, 274)]:
+		_add_scene_rect(pos, Vector2(34, 16), Color("#1b1009"), 340)
+
 func _add_customer_in_scene(customer_id: String, pos: Vector2, active := false) -> void:
 	if active:
 		_add_warm_light(pos - Vector2(18, 18), Vector2(104, 104), 0.16)
 		_add_scene_label("...", pos + Vector2(26, -18), Vector2(48, 20), Color("#f1d8a0"), 15)
-	_add_character_sprite(customer_id, pos + Vector2(32, 64), "seated_idle", Color("#ffffff") if active else Color("#d5c2a6"))
+	var customer := _add_character_sprite(customer_id, pos + Vector2(32, 64), "idle_down", Color("#ffffff") if active else Color("#d5c2a6"))
+	customer.sit_down()
 
 func _add_customer_walk_in_scene(customer_id: String, seat_pos: Vector2) -> void:
 	_add_warm_light(seat_pos - Vector2(18, 18), Vector2(104, 104), 0.16)
@@ -723,14 +740,15 @@ func _add_customer_walk_in_scene(customer_id: String, seat_pos: Vector2) -> void
 	var seat_foot := seat_pos + Vector2(32, 64)
 	walking_customer = _add_character_sprite(customer_id, spawn, "walk_left", Color("#ffffff"))
 	walking_customer.set_animation_state("walk", "left")
+	walking_customer_state = "walking_to_seat"
 	walking_path = [approach, seat_foot]
 	walking_target_index = 0
 
 func _update_customer_walk(delta: float) -> void:
-	if walking_customer == null or walking_path.is_empty():
+	if walking_customer == null or walking_path.is_empty() or walking_customer_state == "seated_idle":
 		return
 	if walking_target_index >= walking_path.size():
-		walking_customer.face_down_or_seated()
+		_seat_walking_customer()
 		return
 	var target: Vector2 = walking_path[walking_target_index]
 	var to_target: Vector2 = target - walking_customer.position
@@ -738,12 +756,21 @@ func _update_customer_walk(delta: float) -> void:
 		walking_customer.position = target.floor()
 		walking_target_index += 1
 		if walking_target_index >= walking_path.size():
-			walking_customer.face_down_or_seated()
+			_seat_walking_customer()
 		return
 	var direction := "right" if to_target.x > 0.0 else "left"
 	walking_customer.set_animation_state("walk", direction)
 	walking_customer.position += to_target.normalized() * 82.0 * delta
 	walking_customer.position = walking_customer.position.floor()
+	walking_customer.z_index = int(walking_customer.position.y)
+
+func _seat_walking_customer() -> void:
+	if walking_customer == null:
+		return
+	walking_customer_state = "seated_idle"
+	walking_customer.velocity = Vector2.ZERO
+	walking_customer.flip_h = false
+	walking_customer.sit_down()
 	walking_customer.z_index = int(walking_customer.position.y)
 
 func _add_steam(origin: Vector2) -> void:
@@ -813,11 +840,12 @@ func _scene_title_for_mode(mode: String) -> String:
 		_:
 			return "Góc quán lúc nửa đêm"
 
-func _add_scene_rect(pos: Vector2, rect_size: Vector2, color: Color) -> ColorRect:
+func _add_scene_rect(pos: Vector2, rect_size: Vector2, color: Color, z := 0) -> ColorRect:
 	var rect := ColorRect.new()
 	rect.color = color
 	rect.position = pos
 	rect.size = rect_size
+	rect.z_index = z
 	scene_layer.add_child(rect)
 	return rect
 

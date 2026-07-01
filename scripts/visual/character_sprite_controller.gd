@@ -12,6 +12,8 @@ var character_id := ""
 var frame_width := 16
 var frame_height := 32
 var last_direction := "down"
+var state := "idle"
+var velocity := Vector2.ZERO
 
 func configure(id: String, config: Dictionary, requested_animation := "") -> void:
 	character_id = id
@@ -35,9 +37,11 @@ func configure(id: String, config: Dictionary, requested_animation := "") -> voi
 func play_named(animation_name: String) -> void:
 	if animation_name == "walk_right":
 		flip_h = true
+		state = "walk"
 		_play_if_exists("walk_left")
 		return
 	flip_h = false
+	state = "walk" if animation_name.begins_with("walk") else "idle"
 	_play_if_exists(animation_name)
 
 func set_animation_state(state: String, direction: String) -> void:
@@ -52,11 +56,14 @@ func set_animation_state(state: String, direction: String) -> void:
 	else:
 		play_named("idle_%s" % direction)
 
+func sit_down() -> void:
+	state = "seated_idle"
+	last_direction = "down"
+	flip_h = false
+	_play_if_exists("idle_down")
+
 func face_down_or_seated() -> void:
-	if sprite_frames != null and sprite_frames.has_animation("seated_idle"):
-		play_named("seated_idle")
-	else:
-		play_named("idle_down")
+	sit_down()
 
 func _play_if_exists(animation_name: String) -> void:
 	if sprite_frames == null:
@@ -76,7 +83,7 @@ func _create_sprite_frames(config: Dictionary) -> SpriteFrames:
 		_add_walk_left(frames, full_texture, config)
 
 	var sit_texture := _load_texture(str(config.get("sit_sheet", "")))
-	if sit_texture != null:
+	if sit_texture != null and bool(config.get("use_seated_pose", false)):
 		_add_seated_idle(frames, sit_texture)
 	elif frames.has_animation("idle_down"):
 		frames.add_animation("seated_idle")
