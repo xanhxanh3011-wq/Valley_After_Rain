@@ -11,6 +11,7 @@ var current_visit_index := 0
 var current_visit: Dictionary = {}
 var current_choice: Dictionary = {}
 var selected_menu: Array[String] = []
+var menu_recipe_buttons: Dictionary = {}
 var ambience_enabled := true
 var rain_lines: Array[ColorRect] = []
 var screen_history: Array[String] = []
@@ -181,6 +182,7 @@ func _show_main_menu() -> void:
 	_clear()
 	_setup_top_bar(false)
 	screen_history.clear()
+	_add_visual_stage()
 	_add_heading("Quán đã lên đèn.")
 	_add_paragraph(data.get("game", {}).get("vision", ""))
 	_add_paragraph("Bản demo tập trung vào 5 đêm đầu: mở quán, lắng nghe, chọn món đúng lúc, và ghi lại những gì khách để lại.")
@@ -199,6 +201,7 @@ func _new_game() -> void:
 func _show_settings() -> void:
 	_clear()
 	_setup_top_bar(false)
+	_add_visual_stage()
 	_add_heading("Settings")
 	_add_paragraph("Bản demo hiện dùng ambience thị giác thay cho audio thật. Audio sẽ được thêm sau khi loop chính ổn định.")
 	var ambience_button := _button("Bật/tắt hiệu ứng mưa: %s" % ("BẬT" if ambience_enabled else "TẮT"), func():
@@ -213,6 +216,7 @@ func _show_settings() -> void:
 func _show_credits() -> void:
 	_clear()
 	_setup_top_bar(false)
+	_add_visual_stage()
 	_add_heading("Credits / License notes")
 	_add_paragraph("Game demo: Đèn Hẻm Sau Mưa. Nội dung, nhân vật, bối cảnh và tuyến truyện được viết mới cho project này.")
 	_add_paragraph("Asset prototype: Modern Interiors by LimeZu, Shikashi Fantasy Icons, Super Retro World by The low-res artist. Xem chi tiết trong docs/LICENSE_NOTES.md trước khi phát hành công khai.")
@@ -227,7 +231,9 @@ func _show_prep() -> void:
 		return
 	_unlock_recipes_for_current_night()
 	selected_menu.clear()
+	menu_recipe_buttons.clear()
 	var night: Dictionary = data["nights"][current_night_index]
+	_add_visual_stage()
 	_add_heading("Trước khi mở quán")
 	_add_meta("%s · %s" % [night["date_label"], night["weather"]])
 	_add_paragraph(night["opening_text"])
@@ -243,8 +249,11 @@ func _show_prep() -> void:
 		var recipe_id: String = str(recipe["id"])
 		var b := _button(str(recipe["name"]), func(): _toggle_menu_recipe(recipe_id))
 		b.tooltip_text = recipe["description"]
+		menu_recipe_buttons[recipe_id] = b
+		_update_menu_recipe_button(recipe_id)
 		grid.add_child(b)
 	content.add_child(grid)
+	_add_note("Menu đêm nay: chọn tối đa 5 món. Nếu bỏ trống, quán sẽ dọn sẵn 5 món đầu.")
 	content.add_child(_button("Mở quán", _start_night))
 
 func _toggle_menu_recipe(recipe_id: String) -> void:
@@ -252,6 +261,7 @@ func _toggle_menu_recipe(recipe_id: String) -> void:
 		selected_menu.erase(recipe_id)
 	elif selected_menu.size() < 5:
 		selected_menu.append(recipe_id)
+	_update_menu_recipe_button(recipe_id)
 
 func _start_night() -> void:
 	if selected_menu.is_empty():
@@ -270,6 +280,7 @@ func _show_next_customer() -> void:
 	_clear()
 	_setup_top_bar(true)
 	var customer := _customer(current_visit["customer_id"])
+	_add_visual_stage(str(current_visit["customer_id"]))
 	_add_heading("%s bước vào" % customer["name"])
 	_add_meta("%s · %s" % [customer["short_description"], current_visit["mood"]])
 	_add_paragraph(current_visit["arrival"])
@@ -295,7 +306,7 @@ func _show_recipe_selection() -> void:
 	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	for recipe in _available_recipes():
 		var recipe_id: String = str(recipe["id"])
-		var b := _button(str(recipe["name"]), func(): _serve_recipe(recipe_id))
+		var b := _button(_recipe_button_text(recipe), func(): _serve_recipe(recipe_id))
 		b.tooltip_text = "%s\nTags: %s / %s" % [recipe["description"], ", ".join(recipe.get("flavor_tags", [])), ", ".join(recipe.get("emotion_tags", []))]
 		grid.add_child(b)
 	content.add_child(grid)
@@ -306,6 +317,7 @@ func _serve_recipe(recipe_id: String) -> void:
 	_clear()
 	_setup_top_bar(true)
 	var customer := _customer(current_visit["customer_id"])
+	_add_visual_stage(str(current_visit["customer_id"]), recipe_id, result)
 	_add_heading("%s nhận %s" % [customer["name"], recipe["name"]])
 	_add_meta("Phản ứng: %s" % _reaction_label(result))
 	for line in current_visit["recipe_reactions"].get(result, current_visit["recipe_reactions"].get("bad", [])):
@@ -334,6 +346,7 @@ func _show_closing() -> void:
 	_clear()
 	_setup_top_bar(true)
 	var night: Dictionary = data["nights"][current_night_index]
+	_add_visual_stage()
 	_add_heading("Sau khi đóng quán")
 	_add_paragraph(night["closing_reflection"])
 	_add_subheading("Dấu vết còn lại trong sổ")
@@ -355,6 +368,7 @@ func _show_closing() -> void:
 func _show_notebook() -> void:
 	_clear()
 	_setup_top_bar(false)
+	_add_visual_stage()
 	_add_heading("Sổ ghi chép của quán")
 	_add_paragraph("Không phải hồ sơ khách hàng. Chỉ là những điều quán học cách nhớ.")
 	_add_subheading("Khách quen")
@@ -378,6 +392,7 @@ func _show_notebook() -> void:
 func _show_recipe_book() -> void:
 	_clear()
 	_setup_top_bar(false)
+	_add_visual_stage()
 	_add_heading("Sổ công thức")
 	_add_paragraph("Món không chỉ là thành phần. Món còn là đúng người, đúng lúc.")
 	for recipe in data["recipes"]:
@@ -401,6 +416,7 @@ func _show_demo_ending() -> void:
 	_save_game()
 	_clear()
 	_setup_top_bar(false)
+	_add_visual_stage()
 	_add_heading("Trời gần sáng")
 	for line in data.get("demo_ending", []):
 		_add_paragraph(line)
@@ -483,6 +499,166 @@ func _add_keepsake(item: String) -> void:
 
 func _add_trust(customer_id: String, amount: int) -> void:
 	state["trust"][customer_id] = int(state["trust"].get(customer_id, 0)) + amount
+
+func _add_visual_stage(customer_id := "", recipe_id := "", result := "") -> void:
+	var stage := PanelContainer.new()
+	stage.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	stage.add_theme_stylebox_override("panel", _panel_style(Color("#182426"), Color("#8f6a45")))
+	content.add_child(stage)
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 14)
+	margin.add_theme_constant_override("margin_right", 14)
+	margin.add_theme_constant_override("margin_top", 12)
+	margin.add_theme_constant_override("margin_bottom", 12)
+	stage.add_child(margin)
+
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 14)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	margin.add_child(row)
+
+	var room := PanelContainer.new()
+	room.custom_minimum_size = Vector2(310, 136)
+	room.add_theme_stylebox_override("panel", _panel_style(Color("#2a211d"), Color("#6f4e35")))
+	row.add_child(room)
+
+	var room_margin := MarginContainer.new()
+	room_margin.add_theme_constant_override("margin_left", 12)
+	room_margin.add_theme_constant_override("margin_right", 12)
+	room_margin.add_theme_constant_override("margin_top", 10)
+	room_margin.add_theme_constant_override("margin_bottom", 10)
+	room.add_child(room_margin)
+
+	var props := GridContainer.new()
+	props.columns = 4
+	props.add_theme_constant_override("h_separation", 12)
+	props.add_theme_constant_override("v_separation", 8)
+	room_margin.add_child(props)
+	props.add_child(_asset_texture_rect(AssetCatalog.MODERN_ANIMATED_DIR + "animated_candle_32x32.png", Vector2(54, 54)))
+	props.add_child(_asset_texture_rect(AssetCatalog.MODERN_ANIMATED_DIR + "animated_coffee_32x32.png", Vector2(54, 54)))
+	props.add_child(_asset_texture_rect(AssetCatalog.MODERN_ANIMATED_DIR + "animated_cat_32x32.png", Vector2(54, 54)))
+	props.add_child(_asset_texture_rect(AssetCatalog.MODERN_ANIMATED_DIR + "animated_cuckoo_clock_32x32.png", Vector2(54, 54)))
+	props.add_child(_asset_texture_rect(AssetCatalog.MODERN_ANIMATED_DIR + "animated_kitchen_pan_with_omelette_32x32.png", Vector2(54, 54)))
+	props.add_child(_asset_texture_rect(AssetCatalog.MODERN_ANIMATED_DIR + "animated_kitchen_oven_2cookers_32x32.png", Vector2(54, 54)))
+	props.add_child(_asset_texture_rect(AssetCatalog.MODERN_ANIMATED_DIR + "animated_sink_32x32.png", Vector2(54, 54)))
+	props.add_child(_asset_texture_rect(AssetCatalog.MODERN_ANIMATED_DIR + "animated_toaster_32x32.png", Vector2(54, 54)))
+
+	var details := VBoxContainer.new()
+	details.add_theme_constant_override("separation", 6)
+	details.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(details)
+
+	if customer_id != "":
+		var customer := _customer(customer_id)
+		var customer_row := HBoxContainer.new()
+		customer_row.add_theme_constant_override("separation", 12)
+		details.add_child(customer_row)
+		customer_row.add_child(_asset_texture_rect(_customer_sprite_path(customer_id), Vector2(96, 96)))
+
+		var customer_text := VBoxContainer.new()
+		customer_text.add_theme_constant_override("separation", 5)
+		customer_text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		customer_row.add_child(customer_text)
+		customer_text.add_child(_stage_label(str(customer.get("name", "Khách ghé quán")), Color("#ffe3ad"), 20))
+		customer_text.add_child(_stage_label(str(customer.get("visual_hint", "Một vị khách ngồi dưới ánh đèn vàng.")), Color("#c7d7d1"), 14))
+		customer_text.add_child(_stage_label("Độ quen: %s" % int(state.get("trust", {}).get(customer_id, 0)), Color("#a8c8b4"), 13))
+	else:
+		details.add_child(_stage_label("Góc quán lúc nửa đêm", Color("#ffe3ad"), 20))
+		details.add_child(_stage_label("Đèn vàng, quầy gỗ, mèo nằm gần cửa. Ngoài hẻm vẫn còn tiếng mưa và xe máy xa xa.", Color("#c7d7d1"), 14))
+
+	if recipe_id != "":
+		var recipe := _recipe(recipe_id)
+		var recipe_row := HBoxContainer.new()
+		recipe_row.add_theme_constant_override("separation", 10)
+		details.add_child(recipe_row)
+		recipe_row.add_child(_asset_texture_rect(_recipe_sprite_path(recipe), Vector2(54, 54)))
+
+		var recipe_text := VBoxContainer.new()
+		recipe_text.add_theme_constant_override("separation", 3)
+		recipe_text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		recipe_row.add_child(recipe_text)
+		recipe_text.add_child(_stage_label(str(recipe.get("name", "Món vừa dọn")), Color("#ffd58a"), 16))
+		recipe_text.add_child(_stage_label("Phản ứng: %s" % _reaction_label(result), Color("#b8d7c5"), 13))
+	elif not state.get("keepsakes", []).is_empty():
+		var keepsakes: Array = state.get("keepsakes", [])
+		details.add_child(_stage_label("Vật kỷ niệm mới nhất: %s" % str(keepsakes.back()), Color("#d6b98a"), 13))
+
+func _asset_texture_rect(path: String, target_size: Vector2, region := Rect2(0, 0, 32, 32), use_region := true) -> TextureRect:
+	var rect := TextureRect.new()
+	rect.custom_minimum_size = target_size
+	rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	rect.modulate = Color(1, 0.95, 0.84, 1)
+	if use_region:
+		rect.texture = _atlas_texture(path, region)
+	else:
+		rect.texture = AssetCatalog.load_texture(path)
+	return rect
+
+func _atlas_texture(path: String, region: Rect2) -> AtlasTexture:
+	var atlas := AtlasTexture.new()
+	atlas.atlas = AssetCatalog.load_texture(path)
+	atlas.region = region
+	return atlas
+
+func _stage_label(text: String, color: Color, font_size := 14) -> Label:
+	var label := Label.new()
+	label.text = text
+	label.add_theme_font_size_override("font_size", font_size)
+	label.add_theme_color_override("font_color", color)
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	return label
+
+func _customer_sprite_path(customer_id: String) -> String:
+	match customer_id:
+		"tai_xe":
+			return AssetCatalog.MODERN_CHARACTER_DIR + "Adam_phone_32x32.png"
+		"van_phong":
+			return AssetCatalog.MODERN_CHARACTER_DIR + "Amelia_reading_32x32.png"
+		"bao_ve":
+			return AssetCatalog.MODERN_CHARACTER_DIR + "Old_man_Josh_32x32.png"
+		"sinh_vien":
+			return AssetCatalog.MODERN_CHARACTER_DIR + "Samuel_phone_32x32.png"
+		"ban_hoa":
+			return AssetCatalog.MODERN_CHARACTER_DIR + "Old_woman_Jenny_32x32.png"
+		"cap_doi":
+			return AssetCatalog.MODERN_CHARACTER_DIR + "Lucy_32x32.png"
+		"y_ta":
+			return AssetCatalog.MODERN_CHARACTER_DIR + "Cleaner_girl_32x32.png"
+		"dev":
+			return AssetCatalog.MODERN_CHARACTER_DIR + "Rob_phone_32x32.png"
+		_:
+			return AssetCatalog.MODERN_PLAYER_ADAM
+
+func _recipe_sprite_path(recipe: Dictionary) -> String:
+	var name := str(recipe.get("name", "")).to_lower()
+	var base := str(recipe.get("base", "")).to_lower()
+	if base.contains("cà phê") or name.contains("cà phê") or name.contains("bạc xỉu"):
+		return AssetCatalog.MODERN_ANIMATED_DIR + "animated_coffee_32x32.png"
+	if name.contains("trà") or name.contains("sữa") or name.contains("cacao"):
+		return AssetCatalog.MODERN_ANIMATED_DIR + "animated_coffee_32x32.png"
+	if name.contains("bánh mì"):
+		return AssetCatalog.MODERN_ANIMATED_DIR + "animated_toaster_32x32.png"
+	return AssetCatalog.MODERN_ANIMATED_DIR + "animated_kitchen_pan_with_omelette_32x32.png"
+
+func _recipe_button_text(recipe: Dictionary) -> String:
+	var warmth := int(recipe.get("warmth_level", 0))
+	var caffeine := int(recipe.get("caffeine_level", 0))
+	var comfort := int(recipe.get("comfort_level", 0))
+	return "%s ấm %s | tỉnh %s | dịu %s" % [recipe.get("name", "Món"), warmth, caffeine, comfort]
+
+func _update_menu_recipe_button(recipe_id: String) -> void:
+	if not menu_recipe_buttons.has(recipe_id):
+		return
+	var recipe := _recipe(recipe_id)
+	if recipe.is_empty():
+		return
+	var button := menu_recipe_buttons[recipe_id] as Button
+	if button == null:
+		return
+	var prefix := "[x] " if selected_menu.has(recipe_id) else "[ ] "
+	button.text = "%s%s" % [prefix, recipe.get("name", recipe_id)]
 
 func _button(text: String, callable: Callable) -> Button:
 	var button := Button.new()

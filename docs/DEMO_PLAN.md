@@ -103,7 +103,7 @@ Notebook and Recipe Book are available during play.
 
 ## 8. Art / Audio Direction
 
-Current demo uses a cozy UI shell with warm panels, rain visuals, and curated pixel-art references. Audio is intentionally noted but not fully implemented yet; next polish pass should add rain, bell, cup, and low-volume loop music.
+Current demo uses a cozy UI shell with warm panels, rain visuals, and imported pixel-art assets for cafe props, customer sprites, and recipe presentation. Audio is intentionally noted but not fully implemented yet; next polish pass should add rain, bell, cup, and low-volume loop music.
 
 ## 9. Implementation Steps Done
 
@@ -112,6 +112,7 @@ Current demo uses a cozy UI shell with warm panels, rain visuals, and curated pi
 - Added state machine UI in `scripts/game/night_cafe_game.gd`.
 - Added save/load to `user://night_cafe_demo_save.json`.
 - Added notebook, recipe book, settings, ending.
+- Added asset-backed visual stage using Modern Interiors characters and animated props.
 
 ## 10. Acceptance Criteria
 
@@ -129,8 +130,8 @@ Current demo uses a cozy UI shell with warm panels, rain visuals, and curated pi
 ## 11. Polish Before Public Demo
 
 - Add real audio ambience and simple SFX.
-- Replace UI-only cafe view with a composed cafe scene.
-- Add portraits or cropped character sprites per customer.
+- Replace current asset-backed UI stage with a composed cafe scene.
+- Add larger portraits or cropped character sprites per customer.
 - Add animated steam/rain/cat.
 - Add text pacing and click-to-advance lines.
 - Add manual save slots.
