@@ -3,6 +3,8 @@ extends Control
 const DATA_PATH := "res://data/demo_content.json"
 const SAVE_PATH := "user://night_cafe_demo_save.json"
 const AssetCatalog := preload("res://scripts/core/asset_catalog.gd")
+const SCENE_WIDTH := 1280.0
+const SCENE_HEIGHT := 410.0
 
 var data: Dictionary
 var state: Dictionary
@@ -17,6 +19,7 @@ var rain_lines: Array[ColorRect] = []
 var screen_history: Array[String] = []
 
 var root_layer: Control
+var scene_layer: Control
 var content: VBoxContainer
 var title_label: Label
 var subtitle_label: Label
@@ -32,8 +35,8 @@ func _process(delta: float) -> void:
 	if not ambience_enabled:
 		return
 	for line in rain_lines:
-		line.position.y += 160.0 * delta
-		if line.position.y > size.y + 20.0:
+		line.position.y += 118.0 * delta
+		if line.position.y > SCENE_HEIGHT + 20.0:
 			line.position.y = -20.0
 
 func _load_json(path: String) -> Dictionary:
@@ -61,77 +64,84 @@ func _reset_state() -> void:
 
 func _build_shell() -> void:
 	var bg := ColorRect.new()
-	bg.color = Color("#101923")
+	bg.color = Color("#1b1009")
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(bg)
 
 	var glow := ColorRect.new()
-	glow.color = Color(0.95, 0.58, 0.23, 0.11)
+	glow.color = Color(0.85, 0.48, 0.18, 0.12)
 	glow.set_anchors_preset(Control.PRESET_FULL_RECT)
-	glow.position = Vector2(0, 0)
 	add_child(glow)
-
-	_build_rain()
-	_add_decor_sprites()
 
 	root_layer = MarginContainer.new()
 	root_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
-	root_layer.add_theme_constant_override("margin_left", 42)
-	root_layer.add_theme_constant_override("margin_right", 42)
-	root_layer.add_theme_constant_override("margin_top", 30)
-	root_layer.add_theme_constant_override("margin_bottom", 30)
+	root_layer.add_theme_constant_override("margin_left", 18)
+	root_layer.add_theme_constant_override("margin_right", 18)
+	root_layer.add_theme_constant_override("margin_top", 14)
+	root_layer.add_theme_constant_override("margin_bottom", 14)
 	add_child(root_layer)
 
 	var main := VBoxContainer.new()
-	main.add_theme_constant_override("separation", 14)
+	main.add_theme_constant_override("separation", 10)
 	root_layer.add_child(main)
 
-	title_label = Label.new()
-	title_label.text = data.get("game", {}).get("title", "Đèn Hẻm Sau Mưa")
-	title_label.add_theme_font_size_override("font_size", 34)
-	title_label.add_theme_color_override("font_color", Color("#ffe3ad"))
-	main.add_child(title_label)
+	var cafe_frame := PanelContainer.new()
+	cafe_frame.custom_minimum_size = Vector2(0, SCENE_HEIGHT)
+	cafe_frame.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	cafe_frame.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	cafe_frame.size_flags_stretch_ratio = 1.65
+	cafe_frame.add_theme_stylebox_override("panel", _panel_style(Color("#21150d"), Color("#6b4728"), 10))
+	main.add_child(cafe_frame)
 
-	subtitle_label = Label.new()
-	subtitle_label.text = data.get("game", {}).get("subtitle", "")
-	subtitle_label.add_theme_color_override("font_color", Color("#b9c7c7"))
-	subtitle_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	main.add_child(subtitle_label)
+	scene_layer = Control.new()
+	scene_layer.clip_contents = true
+	scene_layer.custom_minimum_size = Vector2(SCENE_WIDTH, SCENE_HEIGHT)
+	cafe_frame.add_child(scene_layer)
+
+	var bottom_panel := PanelContainer.new()
+	bottom_panel.custom_minimum_size = Vector2(0, 252)
+	bottom_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	bottom_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	bottom_panel.size_flags_stretch_ratio = 1.0
+	bottom_panel.add_theme_stylebox_override("panel", _panel_style(Color("#24150d"), Color("#6b4728"), 12))
+	main.add_child(bottom_panel)
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 22)
+	margin.add_theme_constant_override("margin_right", 22)
+	margin.add_theme_constant_override("margin_top", 16)
+	margin.add_theme_constant_override("margin_bottom", 16)
+	bottom_panel.add_child(margin)
+
+	var bottom := VBoxContainer.new()
+	bottom.add_theme_constant_override("separation", 10)
+	margin.add_child(bottom)
 
 	top_bar = HBoxContainer.new()
 	top_bar.add_theme_constant_override("separation", 8)
-	main.add_child(top_bar)
-
-	var panel := PanelContainer.new()
-	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	panel.add_theme_stylebox_override("panel", _panel_style(Color("#1d2a2d"), Color("#5b3d2e")))
-	main.add_child(panel)
-
-	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 24)
-	margin.add_theme_constant_override("margin_right", 24)
-	margin.add_theme_constant_override("margin_top", 20)
-	margin.add_theme_constant_override("margin_bottom", 20)
-	panel.add_child(margin)
+	bottom.add_child(top_bar)
 
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	margin.add_child(scroll)
+	bottom.add_child(scroll)
 
 	content = VBoxContainer.new()
-	content.add_theme_constant_override("separation", 12)
+	content.add_theme_constant_override("separation", 10)
 	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.add_child(content)
+	_render_cafe_scene()
 
 func _build_rain() -> void:
+	if scene_layer == null:
+		return
 	for i in 42:
 		var line := ColorRect.new()
-		line.color = Color(0.55, 0.7, 0.85, 0.18)
-		line.size = Vector2(2, 18 + (i % 4) * 6)
-		line.position = Vector2((i * 73) % 1260, (i * 41) % 720)
+		line.color = Color(0.58, 0.72, 0.86, 0.20)
+		line.size = Vector2(2, 14 + (i % 4) * 5)
+		line.position = Vector2((i * 83) % int(SCENE_WIDTH), (i * 37) % int(SCENE_HEIGHT))
 		line.rotation = deg_to_rad(-8)
-		add_child(line)
+		scene_layer.add_child(line)
 		rain_lines.append(line)
 
 func _add_decor_sprites() -> void:
@@ -153,12 +163,12 @@ func _add_decor_sprites() -> void:
 	ui.size = Vector2(180, 180)
 	add_child(ui)
 
-func _panel_style(fill: Color, border: Color) -> StyleBoxFlat:
+func _panel_style(fill: Color, border: Color, radius := 18) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = fill
 	style.border_color = border
 	style.set_border_width_all(2)
-	style.set_corner_radius_all(18)
+	style.set_corner_radius_all(radius)
 	style.shadow_color = Color(0, 0, 0, 0.35)
 	style.shadow_size = 8
 	return style
@@ -182,16 +192,17 @@ func _show_main_menu() -> void:
 	_clear()
 	_setup_top_bar(false)
 	screen_history.clear()
-	_add_visual_stage()
+	_render_cafe_scene("menu")
 	_add_heading("Quán đã lên đèn.")
 	_add_paragraph(data.get("game", {}).get("vision", ""))
 	_add_paragraph("Bản demo tập trung vào 5 đêm đầu: mở quán, lắng nghe, chọn món đúng lúc, và ghi lại những gì khách để lại.")
-	content.add_child(_button("Bắt đầu demo mới", _new_game))
-	var continue_button := _button("Tiếp tục từ save", _load_game)
+	var continue_button := _button("Tiếp tục", _load_game)
 	continue_button.disabled = not FileAccess.file_exists(SAVE_PATH)
 	content.add_child(continue_button)
-	content.add_child(_button("Settings", _show_settings))
+	content.add_child(_button("Chơi mới", _new_game))
+	content.add_child(_button("Cài đặt", _show_settings))
 	content.add_child(_button("Credits / License notes", _show_credits))
+	content.add_child(_button("Thoát", func(): get_tree().quit()))
 
 func _new_game() -> void:
 	_reset_state()
@@ -201,9 +212,12 @@ func _new_game() -> void:
 func _show_settings() -> void:
 	_clear()
 	_setup_top_bar(false)
-	_add_visual_stage()
-	_add_heading("Settings")
-	_add_paragraph("Bản demo hiện dùng ambience thị giác thay cho audio thật. Audio sẽ được thêm sau khi loop chính ổn định.")
+	_render_cafe_scene("settings")
+	_add_heading("Cài đặt")
+	_add_paragraph("Các thanh âm lượng là hướng UI cho bản demo public. Hiện tại bản này đã có ambience mưa thị giác, audio thật sẽ được gắn ở phase sau.")
+	_add_slider_row("Âm lượng nhạc", 58)
+	_add_slider_row("Âm lượng ambience", 72)
+	_add_slider_row("Tốc độ thoại", 62)
 	var ambience_button := _button("Bật/tắt hiệu ứng mưa: %s" % ("BẬT" if ambience_enabled else "TẮT"), func():
 		ambience_enabled = not ambience_enabled
 		for line in rain_lines:
@@ -211,12 +225,13 @@ func _show_settings() -> void:
 		_show_settings()
 	)
 	content.add_child(ambience_button)
+	content.add_child(_button("Fullscreen / Windowed", func(): DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if DisplayServer.window_get_mode() != DisplayServer.WINDOW_MODE_FULLSCREEN else DisplayServer.WINDOW_MODE_WINDOWED)))
 	content.add_child(_button("Quay lại", _show_main_menu))
 
 func _show_credits() -> void:
 	_clear()
 	_setup_top_bar(false)
-	_add_visual_stage()
+	_render_cafe_scene("credits")
 	_add_heading("Credits / License notes")
 	_add_paragraph("Game demo: Đèn Hẻm Sau Mưa. Nội dung, nhân vật, bối cảnh và tuyến truyện được viết mới cho project này.")
 	_add_paragraph("Asset prototype: Modern Interiors by LimeZu, Shikashi Fantasy Icons, Super Retro World by The low-res artist. Xem chi tiết trong docs/LICENSE_NOTES.md trước khi phát hành công khai.")
@@ -233,7 +248,7 @@ func _show_prep() -> void:
 	selected_menu.clear()
 	menu_recipe_buttons.clear()
 	var night: Dictionary = data["nights"][current_night_index]
-	_add_visual_stage()
+	_render_cafe_scene("prep")
 	_add_heading("Trước khi mở quán")
 	_add_meta("%s · %s" % [night["date_label"], night["weather"]])
 	_add_paragraph(night["opening_text"])
@@ -280,7 +295,7 @@ func _show_next_customer() -> void:
 	_clear()
 	_setup_top_bar(true)
 	var customer := _customer(current_visit["customer_id"])
-	_add_visual_stage(str(current_visit["customer_id"]))
+	_render_cafe_scene("dialogue", str(current_visit["customer_id"]))
 	_add_heading("%s bước vào" % customer["name"])
 	_add_meta("%s · %s" % [customer["short_description"], current_visit["mood"]])
 	_add_paragraph(current_visit["arrival"])
@@ -301,15 +316,50 @@ func _choose_dialogue(choice: Dictionary) -> void:
 func _show_recipe_selection() -> void:
 	_add_subheading("Chọn món / đồ uống")
 	_add_paragraph("Hãy chọn theo lời khách, thời tiết, những gì bạn nhớ, và cảm giác của đêm.")
+	_add_filter_chips(["Đồ uống", "Món nóng", "Món no bụng", "Món dịu", "Món tỉnh táo"])
 	var grid := GridContainer.new()
 	grid.columns = 3
 	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	for recipe in _available_recipes():
 		var recipe_id: String = str(recipe["id"])
-		var b := _button(_recipe_button_text(recipe), func(): _serve_recipe(recipe_id))
+		var b := _button(_recipe_button_text(recipe), func(): _show_cooking_panel(recipe_id))
 		b.tooltip_text = "%s\nTags: %s / %s" % [recipe["description"], ", ".join(recipe.get("flavor_tags", [])), ", ".join(recipe.get("emotion_tags", []))]
 		grid.add_child(b)
 	content.add_child(grid)
+
+func _show_cooking_panel(recipe_id: String) -> void:
+	var recipe := _recipe(recipe_id)
+	_clear()
+	_setup_top_bar(true)
+	_render_cafe_scene("cook", str(current_visit.get("customer_id", "")), recipe_id)
+	_add_heading("Chuẩn bị món")
+	_add_meta("Món đang làm: %s" % recipe.get("name", "Món nóng"))
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 14)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	content.add_child(row)
+	row.add_child(_asset_texture_rect(_recipe_sprite_path(recipe), Vector2(88, 88)))
+	var preview := VBoxContainer.new()
+	preview.add_theme_constant_override("separation", 6)
+	preview.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(preview)
+	preview.add_child(_stage_label(str(recipe.get("description", "")), Color("#f1d8a0"), 16))
+	preview.add_child(_stage_label("Chọn cảm giác món muốn gửi vào đêm nay.", Color("#9d8464"), 13))
+	_add_subheading("Hương vị / cảm xúc")
+	_add_filter_chips(recipe.get("flavor_tags", []) + recipe.get("emotion_tags", []), true)
+	var actions := HBoxContainer.new()
+	actions.add_theme_constant_override("separation", 10)
+	actions.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	content.add_child(actions)
+	actions.add_child(_button("Mời khách", func(): _serve_recipe(recipe_id)))
+	actions.add_child(_button("Làm lại", _return_to_recipe_selection))
+	actions.add_child(_button("Ghi chú", _show_notebook))
+
+func _return_to_recipe_selection() -> void:
+	_clear()
+	_setup_top_bar(true)
+	_render_cafe_scene("dialogue", str(current_visit.get("customer_id", "")))
+	_show_recipe_selection()
 
 func _serve_recipe(recipe_id: String) -> void:
 	var result := _reaction_result(recipe_id)
@@ -317,7 +367,7 @@ func _serve_recipe(recipe_id: String) -> void:
 	_clear()
 	_setup_top_bar(true)
 	var customer := _customer(current_visit["customer_id"])
-	_add_visual_stage(str(current_visit["customer_id"]), recipe_id, result)
+	_render_cafe_scene("serve", str(current_visit["customer_id"]), recipe_id, result)
 	_add_heading("%s nhận %s" % [customer["name"], recipe["name"]])
 	_add_meta("Phản ứng: %s" % _reaction_label(result))
 	for line in current_visit["recipe_reactions"].get(result, current_visit["recipe_reactions"].get("bad", [])):
@@ -346,7 +396,7 @@ func _show_closing() -> void:
 	_clear()
 	_setup_top_bar(true)
 	var night: Dictionary = data["nights"][current_night_index]
-	_add_visual_stage()
+	_render_cafe_scene("closing")
 	_add_heading("Sau khi đóng quán")
 	_add_paragraph(night["closing_reflection"])
 	_add_subheading("Dấu vết còn lại trong sổ")
@@ -368,31 +418,28 @@ func _show_closing() -> void:
 func _show_notebook() -> void:
 	_clear()
 	_setup_top_bar(false)
-	_add_visual_stage()
+	_render_cafe_scene("notebook")
 	_add_heading("Sổ ghi chép của quán")
 	_add_paragraph("Không phải hồ sơ khách hàng. Chỉ là những điều quán học cách nhớ.")
-	_add_subheading("Khách quen")
+	_add_notebook_tabs("Khách quen")
 	for customer_id in data["customers"].keys():
 		var customer: Dictionary = data["customers"][customer_id]
-		_add_meta("%s · %s" % [customer["name"], customer["short_description"]])
 		var notes: Array = state["customer_notes"].get(customer_id, [])
 		if notes.is_empty():
-			_add_bullet("Chưa có ghi chú.")
+			_add_paper_note(str(customer["name"]), str(customer["short_description"]), ["Chưa có ghi chú."])
 		else:
-			for note in notes:
-				_add_bullet(note)
+			_add_paper_note(str(customer["name"]), str(customer["short_description"]), notes)
 	_add_subheading("Vật kỷ niệm")
 	if state["keepsakes"].is_empty():
-		_add_bullet("Chưa có gì ngoài vài vệt nước mưa trước cửa.")
+		_add_paper_note("Kệ nhỏ bên quầy", "Vật khách để lại", ["Chưa có gì ngoài vài vệt nước mưa trước cửa."])
 	else:
-		for item in state["keepsakes"]:
-			_add_bullet(item)
+		_add_paper_note("Kệ nhỏ bên quầy", "Vật khách để lại", state["keepsakes"])
 	content.add_child(_button("Quay lại đêm hiện tại", _return_to_current_flow))
 
 func _show_recipe_book() -> void:
 	_clear()
 	_setup_top_bar(false)
-	_add_visual_stage()
+	_render_cafe_scene("recipes")
 	_add_heading("Sổ công thức")
 	_add_paragraph("Món không chỉ là thành phần. Món còn là đúng người, đúng lúc.")
 	for recipe in data["recipes"]:
@@ -416,7 +463,7 @@ func _show_demo_ending() -> void:
 	_save_game()
 	_clear()
 	_setup_top_bar(false)
-	_add_visual_stage()
+	_render_cafe_scene("ending")
 	_add_heading("Trời gần sáng")
 	for line in data.get("demo_ending", []):
 		_add_paragraph(line)
@@ -499,6 +546,238 @@ func _add_keepsake(item: String) -> void:
 
 func _add_trust(customer_id: String, amount: int) -> void:
 	state["trust"][customer_id] = int(state["trust"].get(customer_id, 0)) + amount
+
+func _render_cafe_scene(mode := "idle", customer_id := "", recipe_id := "", result := "") -> void:
+	if scene_layer == null:
+		return
+	for child in scene_layer.get_children():
+		child.queue_free()
+	rain_lines.clear()
+
+	_add_scene_rect(Vector2.ZERO, Vector2(SCENE_WIDTH, SCENE_HEIGHT), Color("#18202a"))
+	_add_scene_rect(Vector2(0, 0), Vector2(SCENE_WIDTH, 88), Color("#24150d"))
+	_add_scene_rect(Vector2(0, 88), Vector2(SCENE_WIDTH, SCENE_HEIGHT - 88), Color("#5a351c"))
+	_add_floor_tiles()
+
+	_add_window(Vector2(56, 24), Vector2(250, 72))
+	_add_window(Vector2(930, 24), Vector2(260, 72))
+	_add_warm_light(Vector2(220, 112), Vector2(250, 170), 0.16)
+	_add_warm_light(Vector2(560, 102), Vector2(340, 185), 0.20)
+	_add_warm_light(Vector2(880, 122), Vector2(250, 160), 0.13)
+
+	_add_menu_board()
+	_add_clock(Vector2(818, 34))
+	_add_scene_label("22:00 - 04:00", Vector2(984, 104), Vector2(190, 24), Color("#9d8464"), 13)
+
+	_add_counter_and_props()
+	_add_tables_and_seats()
+	_add_scene_sprite(AssetCatalog.MODERN_CHARACTER_DIR + "Chef_Alex_32x32.png", Vector2(608, 126), Vector2(72, 72), Color("#fff3dc"))
+
+	var active_customer := customer_id
+	_add_customer_in_scene("ban_hoa", Vector2(178, 246), active_customer == "ban_hoa")
+	_add_customer_in_scene("bao_ve", Vector2(1026, 246), active_customer == "bao_ve")
+	_add_customer_in_scene("sinh_vien", Vector2(384, 300), active_customer == "sinh_vien")
+	if active_customer != "":
+		_add_customer_in_scene(active_customer, Vector2(610, 238), true)
+	elif mode in ["menu", "prep", "closing", "notebook", "recipes", "ending"]:
+		_add_customer_in_scene("tai_xe", Vector2(610, 238), false)
+
+	_add_scene_sprite(AssetCatalog.MODERN_ANIMATED_DIR + "animated_cat_32x32.png", Vector2(78, 332), Vector2(64, 64), Color("#ffe8c2"))
+	_add_steam(Vector2(548, 180))
+	_add_steam(Vector2(705, 182))
+	_add_scene_status(mode, customer_id, recipe_id, result)
+	_build_rain()
+
+func _add_floor_tiles() -> void:
+	for x in range(0, int(SCENE_WIDTH), 32):
+		var line := ColorRect.new()
+		line.color = Color(0.12, 0.07, 0.04, 0.20)
+		line.position = Vector2(x, 88)
+		line.size = Vector2(1, SCENE_HEIGHT - 88)
+		scene_layer.add_child(line)
+	for y in range(88, int(SCENE_HEIGHT), 32):
+		var line := ColorRect.new()
+		line.color = Color(0.12, 0.07, 0.04, 0.18)
+		line.position = Vector2(0, y)
+		line.size = Vector2(SCENE_WIDTH, 1)
+		scene_layer.add_child(line)
+
+func _add_window(pos: Vector2, rect_size: Vector2) -> void:
+	_add_scene_rect(pos, rect_size, Color("#0d151f"))
+	_add_scene_rect(pos + Vector2(5, 5), rect_size - Vector2(10, 10), Color("#18202a"))
+	_add_scene_rect(pos + Vector2(rect_size.x * 0.5 - 1, 5), Vector2(2, rect_size.y - 10), Color("#34414a"))
+	_add_scene_rect(pos + Vector2(5, rect_size.y * 0.5 - 1), Vector2(rect_size.x - 10, 2), Color("#34414a"))
+	for i in 9:
+		var streak := ColorRect.new()
+		streak.color = Color(0.58, 0.72, 0.86, 0.22)
+		streak.position = pos + Vector2(22 + i * 24, 8 + (i % 3) * 9)
+		streak.size = Vector2(2, 30)
+		streak.rotation = deg_to_rad(-8)
+		scene_layer.add_child(streak)
+
+func _add_warm_light(pos: Vector2, rect_size: Vector2, alpha: float) -> void:
+	var light := ColorRect.new()
+	light.color = Color(1.0, 0.64, 0.24, alpha)
+	light.position = pos
+	light.size = rect_size
+	scene_layer.add_child(light)
+
+func _add_menu_board() -> void:
+	var board := PanelContainer.new()
+	board.position = Vector2(382, 22)
+	board.size = Vector2(270, 74)
+	board.add_theme_stylebox_override("panel", _panel_style(Color("#11110d"), Color("#6b4728"), 3))
+	scene_layer.add_child(board)
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 10)
+	margin.add_theme_constant_override("margin_right", 10)
+	margin.add_theme_constant_override("margin_top", 7)
+	margin.add_theme_constant_override("margin_bottom", 7)
+	board.add_child(margin)
+
+	var lines := VBoxContainer.new()
+	lines.add_theme_constant_override("separation", 2)
+	margin.add_child(lines)
+	lines.add_child(_stage_label("MENU ĐÊM", Color("#d7a64b"), 15))
+	lines.add_child(_stage_label("cà phê phin  ·  trà gừng", Color("#f1d8a0"), 11))
+	lines.add_child(_stage_label("cháo nóng  ·  mì trứng", Color("#f1d8a0"), 11))
+
+func _add_clock(pos: Vector2) -> void:
+	_add_scene_rect(pos, Vector2(42, 42), Color("#2b1b12"))
+	_add_scene_rect(pos + Vector2(5, 5), Vector2(32, 32), Color("#d7a64b"))
+	_add_scene_rect(pos + Vector2(10, 10), Vector2(22, 22), Color("#24150d"))
+	_add_scene_rect(pos + Vector2(20, 14), Vector2(2, 10), Color("#f1d8a0"))
+	_add_scene_rect(pos + Vector2(21, 22), Vector2(9, 2), Color("#f1d8a0"))
+
+func _add_counter_and_props() -> void:
+	_add_scene_rect(Vector2(304, 150), Vector2(672, 32), Color("#7a4d31"))
+	_add_scene_rect(Vector2(284, 182), Vector2(712, 74), Color("#3a2418"))
+	_add_scene_rect(Vector2(304, 194), Vector2(672, 10), Color("#8f6a45"))
+	_add_scene_rect(Vector2(508, 112), Vector2(250, 34), Color("#332016"))
+	_add_scene_sprite(AssetCatalog.MODERN_ANIMATED_DIR + "animated_coffee_32x32.png", Vector2(532, 154), Vector2(42, 42), Color("#fff0d0"))
+	_add_scene_sprite(AssetCatalog.MODERN_ANIMATED_DIR + "animated_kitchen_pan_with_omelette_32x32.png", Vector2(692, 154), Vector2(44, 44), Color("#fff0d0"))
+	_add_scene_sprite(AssetCatalog.MODERN_ANIMATED_DIR + "animated_sink_32x32.png", Vector2(770, 155), Vector2(44, 44), Color("#fff0d0"))
+	_add_scene_sprite(AssetCatalog.MODERN_ANIMATED_DIR + "animated_candle_32x32.png", Vector2(416, 154), Vector2(40, 40), Color("#ffdca2"))
+	_add_scene_rect(Vector2(894, 142), Vector2(38, 52), Color("#24412b"))
+	_add_scene_rect(Vector2(906, 118), Vector2(14, 26), Color("#4c7a47"))
+	_add_scene_rect(Vector2(930, 130), Vector2(14, 18), Color("#5c8a52"))
+	_add_scene_label("quầy pha", Vector2(584, 210), Vector2(120, 22), Color("#9d8464"), 13)
+
+func _add_tables_and_seats() -> void:
+	_add_scene_rect(Vector2(142, 244), Vector2(108, 66), Color("#3a2418"))
+	_add_scene_rect(Vector2(158, 260), Vector2(76, 34), Color("#7a4d31"))
+	_add_scene_rect(Vector2(1006, 244), Vector2(112, 66), Color("#3a2418"))
+	_add_scene_rect(Vector2(1024, 260), Vector2(76, 34), Color("#7a4d31"))
+	_add_scene_rect(Vector2(354, 298), Vector2(118, 64), Color("#3a2418"))
+	_add_scene_rect(Vector2(374, 314), Vector2(78, 32), Color("#7a4d31"))
+	for pos in [Vector2(590, 262), Vector2(652, 262), Vector2(714, 262)]:
+		_add_scene_rect(pos, Vector2(34, 28), Color("#2a1a12"))
+
+func _add_customer_in_scene(customer_id: String, pos: Vector2, active := false) -> void:
+	if active:
+		_add_warm_light(pos - Vector2(18, 18), Vector2(104, 104), 0.16)
+		_add_scene_label("...", pos + Vector2(26, -18), Vector2(48, 20), Color("#f1d8a0"), 15)
+	_add_scene_sprite(_customer_sprite_path(customer_id), pos, Vector2(68, 68), Color("#ffffff") if active else Color("#d5c2a6"))
+
+func _add_steam(origin: Vector2) -> void:
+	for i in 3:
+		var steam := ColorRect.new()
+		steam.color = Color(0.86, 0.9, 0.86, 0.28 - i * 0.05)
+		steam.position = origin + Vector2(i * 9, -i * 8)
+		steam.size = Vector2(4, 20)
+		steam.rotation = deg_to_rad(-8 + i * 7)
+		scene_layer.add_child(steam)
+
+func _add_scene_status(mode: String, customer_id: String, recipe_id: String, result: String) -> void:
+	var pill := PanelContainer.new()
+	pill.position = Vector2(32, 112)
+	pill.size = Vector2(300, 74)
+	pill.add_theme_stylebox_override("panel", _panel_style(Color(0.08, 0.05, 0.03, 0.82), Color("#6b4728"), 6))
+	scene_layer.add_child(pill)
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 12)
+	margin.add_theme_constant_override("margin_right", 12)
+	margin.add_theme_constant_override("margin_top", 8)
+	margin.add_theme_constant_override("margin_bottom", 8)
+	pill.add_child(margin)
+
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 2)
+	margin.add_child(box)
+	box.add_child(_stage_label(_scene_title_for_mode(mode), Color("#d7a64b"), 15))
+	if customer_id != "":
+		box.add_child(_stage_label("Khách: %s" % _customer(customer_id).get("name", "khách lạ"), Color("#f1d8a0"), 13))
+	elif recipe_id != "":
+		box.add_child(_stage_label("Món: %s" % _recipe(recipe_id).get("name", "món nóng"), Color("#f1d8a0"), 13))
+	else:
+		var night_number := int(state.get("current_night", 1))
+		box.add_child(_stage_label("Đêm %s · mưa nhẹ ngoài hẻm" % night_number, Color("#f1d8a0"), 13))
+	if result != "":
+		box.add_child(_stage_label("Phản ứng: %s" % _reaction_label(result), Color("#b8d7c5"), 12))
+
+	if mode == "menu":
+		_add_scene_label(str(data.get("game", {}).get("title", "Đèn Hẻm Sau Mưa")), Vector2(418, 304), Vector2(470, 44), Color("#ffd58a"), 32, HORIZONTAL_ALIGNMENT_CENTER)
+		_add_scene_label("Một quán nhỏ mở khi thành phố đã ngủ", Vector2(420, 346), Vector2(470, 28), Color("#f1d8a0"), 15, HORIZONTAL_ALIGNMENT_CENTER)
+
+func _scene_title_for_mode(mode: String) -> String:
+	match mode:
+		"menu":
+			return "Quán vừa lên đèn"
+		"prep":
+			return "Chuẩn bị trước giờ mở cửa"
+		"dialogue":
+			return "Khách đang kể chuyện"
+		"serve":
+			return "Món vừa được dọn ra"
+		"cook":
+			return "Đang pha/nấu sau quầy"
+		"closing":
+			return "Sau khi đóng quán"
+		"notebook":
+			return "Sổ quán đang mở"
+		"recipes":
+			return "Sổ công thức"
+		"settings":
+			return "Cài đặt nhịp đêm"
+		"ending":
+			return "Trời gần sáng"
+		_:
+			return "Góc quán lúc nửa đêm"
+
+func _add_scene_rect(pos: Vector2, rect_size: Vector2, color: Color) -> ColorRect:
+	var rect := ColorRect.new()
+	rect.color = color
+	rect.position = pos
+	rect.size = rect_size
+	scene_layer.add_child(rect)
+	return rect
+
+func _add_scene_sprite(path: String, pos: Vector2, sprite_size: Vector2, tint := Color.WHITE) -> TextureRect:
+	var sprite := TextureRect.new()
+	sprite.texture = _atlas_texture(path, Rect2(0, 0, 32, 32))
+	sprite.position = pos
+	sprite.size = sprite_size
+	sprite.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	sprite.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	sprite.modulate = tint
+	scene_layer.add_child(sprite)
+	return sprite
+
+func _add_scene_label(text: String, pos: Vector2, label_size: Vector2, color: Color, font_size := 14, align := HORIZONTAL_ALIGNMENT_LEFT) -> Label:
+	var label := Label.new()
+	label.text = text
+	label.position = pos
+	label.size = label_size
+	label.horizontal_alignment = align
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.add_theme_font_size_override("font_size", font_size)
+	label.add_theme_color_override("font_color", color)
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	scene_layer.add_child(label)
+	return label
 
 func _add_visual_stage(customer_id := "", recipe_id := "", result := "") -> void:
 	var stage := PanelContainer.new()
@@ -589,6 +868,7 @@ func _asset_texture_rect(path: String, target_size: Vector2, region := Rect2(0, 
 	rect.custom_minimum_size = target_size
 	rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	rect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	rect.modulate = Color(1, 0.95, 0.84, 1)
 	if use_region:
 		rect.texture = _atlas_texture(path, region)
@@ -660,6 +940,72 @@ func _update_menu_recipe_button(recipe_id: String) -> void:
 	var prefix := "[x] " if selected_menu.has(recipe_id) else "[ ] "
 	button.text = "%s%s" % [prefix, recipe.get("name", recipe_id)]
 
+func _add_filter_chips(labels: Array, active := false) -> void:
+	var flow := HFlowContainer.new()
+	flow.add_theme_constant_override("h_separation", 8)
+	flow.add_theme_constant_override("v_separation", 8)
+	flow.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	content.add_child(flow)
+	for label in labels:
+		flow.add_child(_chip(str(label).capitalize(), active))
+
+func _chip(text: String, active := false) -> PanelContainer:
+	var chip := PanelContainer.new()
+	chip.add_theme_stylebox_override("panel", _panel_style(Color("#4a2d18") if active else Color("#2a1a12"), Color("#d7a64b") if active else Color("#6b4728"), 4))
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 12)
+	margin.add_theme_constant_override("margin_right", 12)
+	margin.add_theme_constant_override("margin_top", 6)
+	margin.add_theme_constant_override("margin_bottom", 6)
+	chip.add_child(margin)
+	margin.add_child(_stage_label(text, Color("#ffe3ad") if active else Color("#9d8464"), 13))
+	return chip
+
+func _add_slider_row(label_text: String, value: float) -> void:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 14)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	content.add_child(row)
+	var label := _stage_label(label_text, Color("#f1d8a0"), 15)
+	label.custom_minimum_size = Vector2(180, 30)
+	row.add_child(label)
+	var slider := HSlider.new()
+	slider.min_value = 0
+	slider.max_value = 100
+	slider.value = value
+	slider.step = 1
+	slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(slider)
+
+func _add_notebook_tabs(active_tab: String) -> void:
+	var tabs := HBoxContainer.new()
+	tabs.add_theme_constant_override("separation", 6)
+	tabs.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	content.add_child(tabs)
+	for tab in ["Khách quen", "Công thức", "Món ký ức", "Vật kỷ niệm", "Đêm đã qua"]:
+		tabs.add_child(_chip(tab, tab == active_tab))
+
+func _add_paper_note(title: String, subtitle: String, lines: Array) -> void:
+	var paper := PanelContainer.new()
+	paper.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	paper.add_theme_stylebox_override("panel", _panel_style(Color("#ead7ad"), Color("#8f6a45"), 5))
+	content.add_child(paper)
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 16)
+	margin.add_theme_constant_override("margin_right", 16)
+	margin.add_theme_constant_override("margin_top", 12)
+	margin.add_theme_constant_override("margin_bottom", 12)
+	paper.add_child(margin)
+
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 5)
+	margin.add_child(box)
+	box.add_child(_stage_label(title, Color("#3a2418"), 17))
+	box.add_child(_stage_label(subtitle, Color("#6b4728"), 12))
+	for line in lines:
+		box.add_child(_stage_label("• %s" % str(line), Color("#2b1b12"), 14))
+
 func _button(text: String, callable: Callable) -> Button:
 	var button := Button.new()
 	button.text = text
@@ -669,6 +1015,8 @@ func _button(text: String, callable: Callable) -> Button:
 	button.add_theme_stylebox_override("normal", _button_style(Color("#3a2b24")))
 	button.add_theme_stylebox_override("hover", _button_style(Color("#5a3d2d")))
 	button.add_theme_stylebox_override("pressed", _button_style(Color("#7a4d31")))
+	button.add_theme_stylebox_override("disabled", _button_style(Color("#201711")))
+	button.add_theme_color_override("font_disabled_color", Color("#6f5a40"))
 	button.pressed.connect(callable)
 	return button
 
@@ -677,7 +1025,7 @@ func _button_style(fill: Color) -> StyleBoxFlat:
 	style.bg_color = fill
 	style.border_color = Color("#8f6a45")
 	style.set_border_width_all(1)
-	style.set_corner_radius_all(10)
+	style.set_corner_radius_all(4)
 	style.content_margin_left = 12
 	style.content_margin_right = 12
 	style.content_margin_top = 8
