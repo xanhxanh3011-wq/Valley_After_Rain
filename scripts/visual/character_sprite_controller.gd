@@ -1,83 +1,141 @@
 class_name CharacterSpriteController
 extends AnimatedSprite2D
 
-const DEFAULT_ANIMATIONS := {
-	"idle_down": [0, 1, 2, 3],
-	"walk_down": [4, 5, 6, 7],
-	"idle_left": [8, 9, 10, 11],
-	"walk_left": [12, 13, 14, 15],
-	"idle_right": [16, 17, 18, 19],
-	"walk_right": [20, 21, 22, 23],
-	"idle_up": [24, 25, 26, 27],
-	"walk_up": [28, 29, 30, 31],
-	"seated_idle": [32, 33, 34, 35],
-	"brew_idle": [36, 37, 38, 39],
-	"serve_down": [36, 37, 38, 39]
+const IDLE_FRAME_ORDER := {
+	"left": 0,
+	"up": 1,
+	"down": 2,
+	"right": 3
 }
 
 var character_id := ""
-var frame_width := 32
-var frame_height := 48
+var frame_width := 16
+var frame_height := 32
+var last_direction := "down"
 
 func configure(id: String, config: Dictionary, requested_animation := "") -> void:
 	character_id = id
-	frame_width = int(config.get("frame_width", 32))
-	frame_height = int(config.get("frame_height", 48))
-	var texture := load(str(config.get("sheet", ""))) as Texture2D
-	if texture == null:
-		push_error("Missing character sheet for %s" % id)
-		return
+	frame_width = int(config.get("frame_width", 16))
+	frame_height = int(config.get("frame_height", 32))
+	if frame_width != 16 or frame_height != 32:
+		push_warning("LimeZu character %s expected 16x32 frames, got %sx%s" % [id, frame_width, frame_height])
 
-	sprite_frames = _build_sprite_frames(texture, config)
+	sprite_frames = _create_sprite_frames(config)
 	centered = true
 	offset = Vector2(0, -float(frame_height) * 0.5)
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	var pixel_scale := float(config.get("scale", 2.0))
+	var pixel_scale := float(config.get("scale", 3.0))
 	scale = Vector2(pixel_scale, pixel_scale)
 
 	var animation_name := requested_animation
 	if animation_name == "":
 		animation_name = str(config.get("default_animation", "idle_down"))
-	play_state(animation_name)
+	play_named(animation_name)
 
-func play_state(animation_name: String) -> void:
+func play_named(animation_name: String) -> void:
+	if animation_name == "walk_right":
+		flip_h = true
+		_play_if_exists("walk_left")
+		return
+	flip_h = false
+	_play_if_exists(animation_name)
+
+func set_animation_state(state: String, direction: String) -> void:
+	last_direction = direction
+	if state == "walk":
+		if direction == "right":
+			play_named("walk_right")
+		elif direction == "left":
+			play_named("walk_left")
+		else:
+			play_named("idle_%s" % direction)
+	else:
+		play_named("idle_%s" % direction)
+
+func face_down_or_seated() -> void:
+	if sprite_frames != null and sprite_frames.has_animation("seated_idle"):
+		play_named("seated_idle")
+	else:
+		play_named("idle_down")
+
+func _play_if_exists(animation_name: String) -> void:
 	if sprite_frames == null:
 		return
 	if not sprite_frames.has_animation(animation_name):
 		animation_name = "idle_down"
 	play(animation_name)
 
-func _build_sprite_frames(texture: Texture2D, config: Dictionary) -> SpriteFrames:
-	var out := SpriteFrames.new()
-	var animations: Dictionary = DEFAULT_ANIMATIONS.duplicate(true)
-	for key in config.get("animations", {}).keys():
-		animations[key] = config["animations"][key]
+func _create_sprite_frames(config: Dictionary) -> SpriteFrames:
+	var frames := SpriteFrames.new()
+	var idle_texture := _load_texture(str(config.get("idle_sheet", "")))
+	if idle_texture != null:
+		_add_idle_animations(frames, idle_texture)
 
-	for animation_name in animations.keys():
-		out.add_animation(animation_name)
-		out.set_animation_loop(animation_name, true)
-		out.set_animation_speed(animation_name, _animation_speed(animation_name))
-		for frame_index in animations[animation_name]:
-			out.add_frame(animation_name, _frame_texture(texture, int(frame_index)))
-	return out
+	var full_texture := _load_texture(str(config.get("full_sheet", "")))
+	if full_texture != null:
+		_add_walk_left(frames, full_texture, config)
 
-func _frame_texture(texture: Texture2D, frame_index: int) -> AtlasTexture:
-	var columns: int = max(1, int(texture.get_width() / frame_width))
-	var row: int = int(frame_index / columns)
-	var region := Rect2(
-		float(frame_index % columns) * frame_width,
-		float(row) * frame_height,
-		frame_width,
-		frame_height
-	)
+	var sit_texture := _load_texture(str(config.get("sit_sheet", "")))
+	if sit_texture != null:
+		_add_seated_idle(frames, sit_texture)
+	elif frames.has_animation("idle_down"):
+		frames.add_animation("seated_idle")
+		frames.set_animation_loop("seated_idle", true)
+		frames.set_animation_speed("seated_idle", 1.0)
+		frames.add_frame("seated_idle", frames.get_frame_texture("idle_down", 0))
+	return frames
+
+func _add_idle_animations(frames: SpriteFrames, texture: Texture2D) -> void:
+	_validate_grid(texture, "idle")
+	for direction in IDLE_FRAME_ORDER.keys():
+		var animation_name := "idle_%s" % direction
+		frames.add_animation(animation_name)
+		frames.set_animation_loop(animation_name, true)
+		frames.set_animation_speed(animation_name, 1.0)
+		frames.add_frame(animation_name, _atlas_frame(texture, int(IDLE_FRAME_ORDER[direction]), 0))
+
+func _add_walk_left(frames: SpriteFrames, texture: Texture2D, config: Dictionary) -> void:
+	_validate_grid(texture, "full")
+	var row := int(config.get("walk_row", 1))
+	var start_col := int(config.get("walk_left_start_col", 12))
+	var frame_count := int(config.get("walk_frame_count", 6))
+	frames.add_animation("walk_left")
+	frames.set_animation_loop("walk_left", true)
+	frames.set_animation_speed("walk_left", 7.0)
+	for i in range(frame_count):
+		frames.add_frame("walk_left", _atlas_frame(texture, start_col + i, row))
+
+func _add_seated_idle(frames: SpriteFrames, texture: Texture2D) -> void:
+	_validate_grid(texture, "sit")
+	frames.add_animation("seated_idle")
+	frames.set_animation_loop("seated_idle", true)
+	frames.set_animation_speed("seated_idle", 1.8)
+	var start_col: int = 18 if texture.get_width() >= 384 else 0
+	var frame_count: int = min(6, int(texture.get_width() / frame_width) - start_col)
+	for i in range(max(1, frame_count)):
+		frames.add_frame("seated_idle", _atlas_frame(texture, start_col + i, 0))
+
+func _atlas_frame(texture: Texture2D, column: int, row: int) -> AtlasTexture:
 	var atlas := AtlasTexture.new()
 	atlas.atlas = texture
-	atlas.region = region
+	atlas.region = Rect2(column * frame_width, row * frame_height, frame_width, frame_height)
 	return atlas
 
-func _animation_speed(animation_name: String) -> float:
-	if animation_name.begins_with("walk"):
-		return 7.5
-	if animation_name == "seated_idle":
-		return 1.8
-	return 2.4
+func _load_texture(path: String) -> Texture2D:
+	if path == "":
+		return null
+	var texture := load(path) as Texture2D
+	if texture == null:
+		push_error("Missing LimeZu character texture: %s" % path)
+	return texture
+
+func _validate_grid(texture: Texture2D, label: String) -> void:
+	if texture.get_width() % frame_width != 0 or texture.get_height() % frame_height != 0:
+		push_error("Invalid %s sheet grid for %s: %sx%s is not divisible by %sx%s" % [
+			label,
+			character_id,
+			texture.get_width(),
+			texture.get_height(),
+			frame_width,
+			frame_height
+		])

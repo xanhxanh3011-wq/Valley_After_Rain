@@ -1,73 +1,112 @@
-# Asset Pipeline Audit
+# Asset Pipeline Audit - LimeZu Characters
 
-## Vấn đề đã phát hiện
+## Asset Source
 
-- `scripts/game/night_cafe_game.gd` từng dùng `Rect2(0, 0, 32, 32)` cho cả nhân vật và prop.
-- Các file Modern Interiors là sprite sheet nhiều frame/hàng, ví dụ:
-  - `Adam_idle_anim_32x32.png`: `768x64`, grid 32px là `24x2`.
-  - `Chef_Alex_32x32.png`: `768x192`, grid 32px là `24x6`.
-  - `Old_man_Josh_32x32.png`: `1536x640`, grid 32px là `48x20`.
-  - `animated_cat_32x32.png`: `1152x32`, grid 32px là `36x1`.
-  - `animated_coffee_32x32.png`: `192x64`, grid 32px là `6x2`.
-- Vì không có config animation/action, việc lấy frame đầu tiên làm mọi pose khiến nhân vật sai dáng, không có idle/walk, prop bị đứng hình hoặc nhìn như placeholder lỗi.
-- Một số sprite trong scene bị render bằng `TextureRect` với kích thước không theo integer scale, gây cảm giác méo/mờ.
+The original LimeZu character files were found in the shared workspace at:
 
-## Chuẩn đã áp dụng
+`D:\GameMaking\game assets\Modern_Interiors\2_Characters\16x16`
 
-- Nhân vật demo dùng sheet mới trong `assets/generated/characters`.
-- Frame size thống nhất: `32x48`.
-- Sheet size: `128x480`, tương đương 4 cột x 10 hàng.
-- Nền trong suốt, padding đủ để không mất đầu/chân.
-- Pivot runtime: bottom-center bằng `AnimatedSprite2D.offset = Vector2(0, -frame_height / 2)`.
-- Scale runtime: `2x`, không dùng scale lẻ.
-- Animation data nằm trong `data/characters.json`.
-- Runtime controller tập trung ở `scripts/visual/character_sprite_controller.gd`.
+The runtime copies used by Godot are exact copies under:
 
-## Animation Rows
+`res://assets/limezu/characters_free/16x16/`
 
-- Row 0: `idle_down`
-- Row 1: `walk_down`
-- Row 2: `idle_left`
-- Row 3: `walk_left`
-- Row 4: `idle_right`
-- Row 5: `walk_right`
-- Row 6: `idle_up`
-- Row 7: `walk_up`
-- Row 8: `seated_idle`
-- Row 9: `brew_idle` / `serve_down`
+No generated/blocky character sheets are used by the game.
 
-## Prop Handling
+## Characters Found
 
-- Prop grid vẫn dùng frame 32px.
-- Prop động quan trọng đã chuyển sang `AnimatedSprite2D` qua `_add_animated_prop`.
-- Cat, candle, coffee và pan không còn bị render như frame tĩnh scale lẻ.
-- Mưa, steam và lamp flicker được update trong `_process`.
+The source folder includes, among others:
 
-## Cách thêm nhân vật mới
+- `Adam`
+- `Alex`
+- `Amelia`
+- `Bob`
+- `Chef_Alex`
+- `Cleaner_girl`
+- `Lucy`
+- `Old_man_Josh`
+- `Old_woman_Jenny`
+- `Rob`
+- `Samuel`
 
-1. Tạo sheet `32x48`, 4 frame mỗi row, theo row chuẩn ở trên.
-2. Đặt file vào `assets/generated/characters`.
-3. Mở Godot editor/headless editor để import asset.
-4. Thêm entry trong `data/characters.json`:
+## Demo Character Mapping
 
-```json
-{
-	"display_name": "Tên nhân vật",
-	"sheet": "res://assets/generated/characters/new_character_sheet.png",
-	"frame_width": 32,
-	"frame_height": 48,
-	"scale": 2,
-	"default_animation": "seated_idle",
-	"default_direction": "down",
-	"seat_offset": [0, 0],
-	"animations": {}
-}
-```
+- Player / Chủ quán: `Chef_Alex`
+- Minh / tài xế: `Adam`
+- Linh / văn phòng: `Amelia`
+- Chú Bảy / bảo vệ: `Old_man_Josh`
+- An / sinh viên: `Samuel`
+- Cô Hạnh / bán hoa: `Old_woman_Jenny`
+- Cặp đôi: `Lucy`
+- Mai / y tá: `Cleaner_girl`
+- Khoa / developer: `Rob`
 
-Nếu `animations` để trống, controller dùng animation map mặc định.
+The mapping lives in:
 
-## Kiểm thử bắt buộc
+`res://data/characters.json`
 
-```powershell
-& 'D:\GameMaking\Godot_v4.7-stable_win64.exe\Godot_v4.7-stable_win64_console.exe' --headless --path 'D:\GameMaking\idea-ready-game' --quit-after 1
-```
+## Verified Dimensions
+
+Idle sheets:
+
+- Pattern: `{name}_idle_16x16.png`
+- Example: `Adam_idle_16x16.png`
+- Size: `64x32`
+- Frame size: `16x32`
+- Frame order:
+  - `Rect2(0, 0, 16, 32)` = `idle_left`
+  - `Rect2(16, 0, 16, 32)` = `idle_up`
+  - `Rect2(32, 0, 16, 32)` = `idle_down`
+  - `Rect2(48, 0, 16, 32)` = `idle_right`
+
+Full sheets:
+
+- Pattern: `{name}_16x16.png`
+- Many files in this workspace are larger than the public example, e.g. `Adam_16x16.png` is `768x288`.
+- The frame size is still `16x32`.
+- The loader validates that full sheet width/height are divisible by `16x32`.
+
+Walk slicing currently used:
+
+- `walk_row = 1`
+- `walk_left_start_col = 12`
+- `walk_frame_count = 6`
+- Walk-left frames are:
+  - `Rect2((12 + i) * 16, 1 * 32, 16, 32)`, `i = 0..5`
+- `walk_right` reuses the same strip with `flip_h = true`.
+
+Sit sheets:
+
+- Pattern: `{name}_sit_16x16.png`
+- If present, `seated_idle` uses the final visible front-facing group:
+  - start column `18`
+  - up to `6` frames
+- If missing, `seated_idle` falls back to `idle_down`.
+
+## Runtime Scripts
+
+Animation is centralized in:
+
+`res://scripts/visual/character_sprite_controller.gd`
+
+Scene usage is in:
+
+`res://scripts/game/night_cafe_game.gd`
+
+The controller exposes:
+
+- `configure(id, config, requested_animation)`
+- `play_named(animation_name)`
+- `set_animation_state(state, direction)`
+- `face_down_or_seated()`
+
+## Previous Bug
+
+The earlier scene hardcoded `Rect2(0, 0, 32, 32)` and later used generated `32x48` character sheets. Both are incorrect for this requirement.
+
+The current pipeline uses LimeZu `16x32` character frames only.
+
+## Known Limitations
+
+- `walk_up` and `walk_down` are not enabled yet because this pass only validated the clean side-profile walk strip requested for customer entry.
+- Customers without a sit sheet fall back to `idle_down` behind the table/counter.
+- The scene still uses some procedural rectangles for large floor/wall/counter blocks, while characters and animated props use asset sheets.

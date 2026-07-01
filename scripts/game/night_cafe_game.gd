@@ -22,6 +22,9 @@ var rain_lines: Array[ColorRect] = []
 var steam_lines: Array[ColorRect] = []
 var lamp_glows: Array[ColorRect] = []
 var scene_time := 0.0
+var walking_customer: CharacterSpriteController
+var walking_path: Array[Vector2] = []
+var walking_target_index := 0
 var screen_history: Array[String] = []
 
 var root_layer: Control
@@ -54,6 +57,7 @@ func _process(delta: float) -> void:
 			color.a = 0.28
 			steam.position.y += 24.0
 		steam.color = color
+	_update_customer_walk(delta)
 	if not ambience_enabled:
 		return
 	for line in rain_lines:
@@ -577,6 +581,9 @@ func _render_cafe_scene(mode := "idle", customer_id := "", recipe_id := "", resu
 	rain_lines.clear()
 	steam_lines.clear()
 	lamp_glows.clear()
+	walking_customer = null
+	walking_path.clear()
+	walking_target_index = 0
 
 	_add_scene_rect(Vector2.ZERO, Vector2(SCENE_WIDTH, SCENE_HEIGHT), Color("#18202a"))
 	_add_scene_rect(Vector2(0, 0), Vector2(SCENE_WIDTH, 88), Color("#24150d"))
@@ -598,11 +605,14 @@ func _render_cafe_scene(mode := "idle", customer_id := "", recipe_id := "", resu
 	_add_character_sprite("player", Vector2(640, 196), "brew_idle", Color("#fff3dc"))
 
 	var active_customer := customer_id
-	_add_customer_in_scene("ban_hoa", Vector2(178, 246), active_customer == "ban_hoa")
-	_add_customer_in_scene("bao_ve", Vector2(1026, 246), active_customer == "bao_ve")
-	_add_customer_in_scene("sinh_vien", Vector2(384, 300), active_customer == "sinh_vien")
+	if active_customer != "ban_hoa":
+		_add_customer_in_scene("ban_hoa", Vector2(178, 246), false)
+	if active_customer != "bao_ve":
+		_add_customer_in_scene("bao_ve", Vector2(1026, 246), false)
+	if active_customer != "sinh_vien":
+		_add_customer_in_scene("sinh_vien", Vector2(384, 300), false)
 	if active_customer != "":
-		_add_customer_in_scene(active_customer, Vector2(610, 238), true)
+		_add_customer_walk_in_scene(active_customer, Vector2(610, 238))
 	elif mode in ["menu", "prep", "closing", "notebook", "recipes", "ending"]:
 		_add_customer_in_scene("tai_xe", Vector2(610, 238), false)
 
@@ -704,6 +714,37 @@ func _add_customer_in_scene(customer_id: String, pos: Vector2, active := false) 
 		_add_warm_light(pos - Vector2(18, 18), Vector2(104, 104), 0.16)
 		_add_scene_label("...", pos + Vector2(26, -18), Vector2(48, 20), Color("#f1d8a0"), 15)
 	_add_character_sprite(customer_id, pos + Vector2(32, 64), "seated_idle", Color("#ffffff") if active else Color("#d5c2a6"))
+
+func _add_customer_walk_in_scene(customer_id: String, seat_pos: Vector2) -> void:
+	_add_warm_light(seat_pos - Vector2(18, 18), Vector2(104, 104), 0.16)
+	_add_scene_label("...", seat_pos + Vector2(26, -18), Vector2(48, 20), Color("#f1d8a0"), 15)
+	var spawn := Vector2(1190, 198)
+	var approach := Vector2(876, 246)
+	var seat_foot := seat_pos + Vector2(32, 64)
+	walking_customer = _add_character_sprite(customer_id, spawn, "walk_left", Color("#ffffff"))
+	walking_customer.set_animation_state("walk", "left")
+	walking_path = [approach, seat_foot]
+	walking_target_index = 0
+
+func _update_customer_walk(delta: float) -> void:
+	if walking_customer == null or walking_path.is_empty():
+		return
+	if walking_target_index >= walking_path.size():
+		walking_customer.face_down_or_seated()
+		return
+	var target: Vector2 = walking_path[walking_target_index]
+	var to_target: Vector2 = target - walking_customer.position
+	if to_target.length() <= 2.0:
+		walking_customer.position = target.floor()
+		walking_target_index += 1
+		if walking_target_index >= walking_path.size():
+			walking_customer.face_down_or_seated()
+		return
+	var direction := "right" if to_target.x > 0.0 else "left"
+	walking_customer.set_animation_state("walk", direction)
+	walking_customer.position += to_target.normalized() * 82.0 * delta
+	walking_customer.position = walking_customer.position.floor()
+	walking_customer.z_index = int(walking_customer.position.y)
 
 func _add_steam(origin: Vector2) -> void:
 	for i in 3:

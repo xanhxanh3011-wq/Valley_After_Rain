@@ -11,7 +11,7 @@ Godot 4.7 cozy narrative demo about a small late-night cafe in a fictional Vietn
 - Recipe book with unlock progression.
 - Demo ending screen.
 - Asset-backed cafe visual stage using imported character and prop sprites.
-- Data-driven character animation pipeline with generated 32x48 pixel sheets.
+- Data-driven character animation pipeline using original LimeZu 16x32 character sheets.
 - Data-driven content in `data/demo_content.json`.
 
 ## Run
