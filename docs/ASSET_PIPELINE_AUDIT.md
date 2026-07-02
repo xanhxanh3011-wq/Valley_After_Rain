@@ -67,6 +67,18 @@ Full sheets:
 
 Important: `16x32` is not a global character default. It is the configured frame size for the currently mapped LimeZu customer sheets. The controller reads `frame_width` and `frame_height` from `data/characters.json`.
 
+`CharacterSpriteController` also supports per-sheet overrides:
+
+- `idle_frame_width` / `idle_frame_height`
+- `full_frame_width` / `full_frame_height`
+- `sit_frame_width` / `sit_frame_height`
+
+Current mixed-size case:
+
+- `Cleaner_girl_idle_16x16.png`: `64x32`, idle frame `16x32`.
+- `Cleaner_girl_16x16.png`: `384x112`, full/walk frame `16x16`.
+- `y_ta` therefore keeps `frame_height = 32` for idle display and sets `full_frame_height = 16` for the full walk sheet.
+
 Walk slicing currently used:
 
 - `walk_row = 1`
@@ -124,17 +136,17 @@ Project path:
 
 `res://assets/limezu/animated_objects/16x16/spritesheets/`
 
-| File | Size | Frame | Frames | Layout | Scene usage |
+| File | Size | Frame | Texture frames | Runtime strip | Layout | Scene usage |
 |---|---:|---:|---:|---|---|
-| `animated_cat.png` | `576x16` | `16x16` | 36 | Horizontal strip | Cat at lower-left corner |
-| `animated_coffee.png` | `96x32` | `16x16` | 12 | Multi-row grid | Cup/coffee on counter and recipe icon |
-| `animated_candle.png` | `48x32` | `16x16` | 6 | Multi-row grid | Candle on counter |
-| `animated_kitchen_pan_with_omelette.png` | `256x32` | `16x16` | 32 | Multi-row grid | Hot food/pan on counter and recipe icon |
-| `animated_kitchen_sink_1.png` | `96x16` | `16x16` | 6 | Horizontal strip | Sink/counter prop |
-| `animated_toaster.png` | `176x32` | `16x16` | 22 | Multi-row grid | Bread/recipe icon |
-| `animated_cuckoo_clock.png` | `160x32` | `16x16` | 20 | Multi-row grid | Available for clock prop/UI stage |
+| `animated_cat.png` | `576x16` | `16x16` | 36 | frames `0..35` | Horizontal strip | Cat at lower-left corner |
+| `animated_coffee.png` | `96x32` | `16x16` | 12 | frames `0..5` only | Multi-row grid | Cup/coffee on counter and recipe icon |
+| `animated_candle.png` | `48x32` | `16x16` | 6 | frames `0..2` only | Multi-row grid | Candle on counter |
+| `animated_kitchen_pan_with_omelette.png` | `256x32` | `16x16` | 32 | frames `0..15` only | Multi-row grid | Hot food/pan on counter and recipe icon |
+| `animated_kitchen_sink_1.png` | `96x16` | `16x16` | 6 | frames `0..5` | Horizontal strip | Sink/counter prop |
+| `animated_toaster.png` | `176x32` | `16x16` | 22 | frame `0` for static icon | Multi-row grid | Bread/recipe icon |
+| `animated_cuckoo_clock.png` | `160x32` | `16x16` | 20 | frame `0` unless animated later | Multi-row grid | Available for clock prop/UI stage |
 
-The scene helper `_add_animated_prop()` now accepts `frame_size` and can auto-compute frame count from the real texture size. It supports:
+The scene helper `_add_animated_prop()` now accepts `frame_size`, `frame_count`, and `start_frame`. Multi-row atlases must pass an explicit `frame_count` so props do not animate into a different object variant on the next row. It supports:
 
 - `32x16` -> 2 frames of `16x16`.
 - `48x16` -> 3 frames of `16x16`.
@@ -153,9 +165,9 @@ Runtime script: `res://scripts/game/night_cafe_game.gd`
 | Player | `CharacterSpriteController` | `Chef_Alex_idle_16x16.png` / `Chef_Alex_16x16.png` | `16x32` | `3x` |
 | Customers | `CharacterSpriteController` | mapped in `data/characters.json` | `16x32` | `3x` |
 | Cat lower-left | `_add_animated_prop` | `animated_cat.png` | `16x16`, 36 frames | `3x` |
-| Coffee/cup | `_add_animated_prop` / `_asset_texture_rect` | `animated_coffee.png` | `16x16`, 12 frames | `3x` scene, `5x/3x` UI |
-| Candle | `_add_animated_prop` | `animated_candle.png` | `16x16`, 6 frames | `3x` |
-| Pan/hot food | `_add_animated_prop` / `_asset_texture_rect` | `animated_kitchen_pan_with_omelette.png` | `16x16` | `3x` scene, `5x/3x` UI |
+| Coffee/cup | `_add_animated_prop` / `_asset_texture_rect` | `animated_coffee.png` | `16x16`, runtime frames `0..5` | `3x` scene, `5x/3x` UI |
+| Candle | `_add_animated_prop` | `animated_candle.png` | `16x16`, runtime frames `0..2` | `3x` |
+| Pan/hot food | `_add_animated_prop` / `_asset_texture_rect` | `animated_kitchen_pan_with_omelette.png` | `16x16`, runtime frames `0..15` | `3x` scene, `5x/3x` UI |
 | Sink | `_add_animated_prop` | `animated_kitchen_sink_1.png` | `16x16`, 6 frames | `3x` |
 | Toaster/recipe icon | `_asset_texture_rect` | `animated_toaster.png` | `16x16` | `5x/3x` UI |
 
@@ -165,7 +177,8 @@ No runtime node now uses the old `animated_*_32x32.png` paths.
 
 - Cat previously used `animated_cat_32x32.png` from the 32px folder. It now uses `animated_cat.png` from the 16px LimeZu folder, sliced as 36 frames of `16x16`, scale `3x`.
 - Coffee/candle/pan/sink/toaster previously used 32px animated object paths. They now use 16px LimeZu files and grid-slice `16x16`.
-- `_add_animated_prop()` previously assumed a 32px horizontal strip. It now reads actual texture width/height and frame size.
+- Coffee/candle/pan previously risked animating across the whole multi-row atlas. Runtime now uses only the first-row strip for each object.
+- `_add_animated_prop()` previously assumed a 32px horizontal strip. It now reads actual texture width/height, frame size, frame count, and optional start frame.
 - `_add_scene_sprite()` default region now uses `AssetCatalog.TILE_SIZE`, currently `16`.
 - `AssetCatalog.TILE_SIZE` is now `16`.
 - UI recipe icon sizes were changed to integer multiples of `16` (`80px` or `48px`) to avoid fractional scaling.

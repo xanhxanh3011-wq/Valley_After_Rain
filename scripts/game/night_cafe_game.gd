@@ -601,7 +601,7 @@ func _render_cafe_scene(mode := "idle", customer_id := "", recipe_id := "", resu
 
 	_add_counter_front_overlay()
 	_add_table_front_overlays()
-	_add_animated_prop(AssetCatalog.LIMEZU_ANIMATED_16_DIR + "animated_cat.png", Vector2(110, 390), -1, Vector2i(16, 16), 3.0, 4.0, Color("#ffe8c2"))
+	_add_animated_prop(AssetCatalog.LIMEZU_ANIMATED_16_DIR + "animated_cat.png", Vector2(110, 390), 36, Vector2i(16, 16), 3.0, 4.0, Color("#ffe8c2"))
 	_add_steam(Vector2(548, 180))
 	_add_steam(Vector2(705, 182))
 	_add_scene_status(mode, customer_id, recipe_id, result)
@@ -675,10 +675,10 @@ func _add_counter_and_props() -> void:
 	_add_scene_rect(Vector2(284, 182), Vector2(712, 74), Color("#3a2418"), 20)
 	_add_scene_rect(Vector2(304, 194), Vector2(672, 10), Color("#8f6a45"), 20)
 	_add_scene_rect(Vector2(508, 112), Vector2(250, 34), Color("#332016"))
-	_add_animated_prop(AssetCatalog.LIMEZU_ANIMATED_16_DIR + "animated_coffee.png", Vector2(552, 198), -1, Vector2i(16, 16), 3.0, 4.0, Color("#fff0d0"))
-	_add_animated_prop(AssetCatalog.LIMEZU_ANIMATED_16_DIR + "animated_kitchen_pan_with_omelette.png", Vector2(712, 198), 12, Vector2i(16, 16), 3.0, 5.0, Color("#fff0d0"))
-	_add_animated_prop(AssetCatalog.LIMEZU_ANIMATED_16_DIR + "animated_kitchen_sink_1.png", Vector2(792, 198), -1, Vector2i(16, 16), 3.0, 3.0, Color("#fff0d0"))
-	_add_animated_prop(AssetCatalog.LIMEZU_ANIMATED_16_DIR + "animated_candle.png", Vector2(436, 198), -1, Vector2i(16, 16), 3.0, 5.0, Color("#ffdca2"))
+	_add_animated_prop(AssetCatalog.LIMEZU_ANIMATED_16_DIR + "animated_coffee.png", Vector2(552, 198), 6, Vector2i(16, 16), 3.0, 4.0, Color("#fff0d0"))
+	_add_animated_prop(AssetCatalog.LIMEZU_ANIMATED_16_DIR + "animated_kitchen_pan_with_omelette.png", Vector2(712, 198), 16, Vector2i(16, 16), 3.0, 5.0, Color("#fff0d0"))
+	_add_animated_prop(AssetCatalog.LIMEZU_ANIMATED_16_DIR + "animated_kitchen_sink_1.png", Vector2(792, 198), 6, Vector2i(16, 16), 3.0, 3.0, Color("#fff0d0"))
+	_add_animated_prop(AssetCatalog.LIMEZU_ANIMATED_16_DIR + "animated_candle.png", Vector2(436, 198), 3, Vector2i(16, 16), 3.0, 5.0, Color("#ffdca2"))
 	_add_scene_rect(Vector2(894, 142), Vector2(38, 52), Color("#24412b"))
 	_add_scene_rect(Vector2(906, 118), Vector2(14, 26), Color("#4c7a47"))
 	_add_scene_rect(Vector2(930, 130), Vector2(14, 18), Color("#5c8a52"))
@@ -842,7 +842,7 @@ func _add_scene_sprite(path: String, pos: Vector2, sprite_size: Vector2, tint :=
 	scene_layer.add_child(sprite)
 	return sprite
 
-func _add_animated_prop(path: String, foot_position: Vector2, frame_count := -1, frame_size := Vector2i(16, 16), pixel_scale := 3.0, speed := 4.0, tint := Color.WHITE) -> AnimatedSprite2D:
+func _add_animated_prop(path: String, foot_position: Vector2, frame_count := -1, frame_size := Vector2i(16, 16), pixel_scale := 3.0, speed := 4.0, tint := Color.WHITE, start_frame := 0) -> AnimatedSprite2D:
 	var texture := AssetCatalog.load_texture(path)
 	var prop := AnimatedSprite2D.new()
 	var frames := SpriteFrames.new()
@@ -852,8 +852,19 @@ func _add_animated_prop(path: String, foot_position: Vector2, frame_count := -1,
 	var columns: int = max(1, int(texture.get_width() / frame_size.x))
 	var rows: int = max(1, int(texture.get_height() / frame_size.y))
 	var total_frames: int = columns * rows
-	var frames_to_add: int = total_frames if frame_count < 0 else min(frame_count, total_frames)
-	for frame_index in range(frames_to_add):
+	var safe_start_frame: int = clampi(start_frame, 0, max(0, total_frames - 1))
+	var available_frames: int = max(1, total_frames - safe_start_frame)
+	var frames_to_add: int = available_frames if frame_count < 0 else clampi(frame_count, 1, available_frames)
+	if texture.get_width() % frame_size.x != 0 or texture.get_height() % frame_size.y != 0:
+		push_error("Invalid animated prop grid: %s is %sx%s, frame %sx%s" % [
+			path,
+			texture.get_width(),
+			texture.get_height(),
+			frame_size.x,
+			frame_size.y
+		])
+	for offset_index in range(frames_to_add):
+		var frame_index := safe_start_frame + offset_index
 		var column := frame_index % columns
 		var row := int(frame_index / columns)
 		var atlas := AtlasTexture.new()
