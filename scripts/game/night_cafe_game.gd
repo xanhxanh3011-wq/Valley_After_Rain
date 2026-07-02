@@ -210,18 +210,35 @@ func _show_main_menu() -> void:
 	_add_heading("Quán đã lên đèn.")
 	_add_paragraph(data.get("game", {}).get("vision", ""))
 	_add_paragraph("Bản demo tập trung vào 5 đêm đầu: mở quán, lắng nghe, chọn món đúng lúc, và ghi lại những gì khách để lại.")
-	var continue_button := _button("Tiếp tục", _load_game)
-	continue_button.disabled = not FileAccess.file_exists(SAVE_PATH)
-	content.add_child(continue_button)
-	content.add_child(_button("Chơi mới", _new_game))
-	content.add_child(_button("Cài đặt", _show_settings))
-	content.add_child(_button("Credits / License notes", _show_credits))
-	content.add_child(_button("Thoát", func(): get_tree().quit()))
+	_add_main_menu_actions()
 
 func _new_game() -> void:
 	_reset_state()
 	_save_game()
 	_show_prep()
+
+func _add_main_menu_actions() -> void:
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 12)
+	grid.add_theme_constant_override("v_separation", 12)
+	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	content.add_child(grid)
+
+	var continue_button := _menu_action_button("Tiếp tục", "Mở lại đêm đang lưu", _load_game)
+	continue_button.disabled = not FileAccess.file_exists(SAVE_PATH)
+	grid.add_child(continue_button)
+	grid.add_child(_menu_action_button("Chơi mới", "Bắt đầu lại từ đêm đầu", _new_game))
+	grid.add_child(_menu_action_button("Cài đặt", "Âm lượng, ambience, cấu hình sprite", _show_settings))
+	grid.add_child(_menu_action_button("Credits", "Nguồn asset và ghi chú license", _show_credits))
+	grid.add_child(_menu_action_button("Thoát", "Đóng bản demo", func(): get_tree().quit()))
+
+func _menu_action_button(title: String, subtitle: String, callable: Callable) -> Button:
+	var button := _button("%s\n%s" % [title, subtitle], callable)
+	button.custom_minimum_size = Vector2(0, 72)
+	button.add_theme_font_size_override("font_size", 16)
+	button.add_theme_color_override("font_color", Color("#ffe8c2"))
+	return button
 
 func _show_settings() -> void:
 	_clear()
@@ -275,7 +292,7 @@ func _add_sprite_slice_settings_panel() -> void:
 	margin.add_child(box)
 
 	box.add_child(_stage_label("Cấu hình slice sprite asset", Color("#ffd58a"), 20))
-	box.add_child(_stage_label("Áp dụng cho mọi PNG trong assets. Code nào dùng đúng texture path này sẽ tự đọc preset đã lưu.", Color("#e8ddd0"), 14))
+	box.add_child(_stage_label("Chỉ áp dụng cho PNG thuộc pack /16x16/. Code nào dùng đúng texture path này sẽ tự đọc preset đã lưu.", Color("#e8ddd0"), 14))
 
 	var picker := OptionButton.new()
 	picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -335,7 +352,7 @@ func _add_sprite_slice_settings_panel() -> void:
 
 	actions.add_child(_button("Lưu preset slice", func():
 		var path := texture_path_edit.text.strip_edges()
-		if path == "":
+		if path == "" or not path.contains("/16x16/"):
 			return
 		selected_slice_texture = path
 		sprite_slice_presets[path] = {
@@ -385,7 +402,7 @@ func _collect_png_asset_paths_recursive(dir_path: String, results: Array[String]
 		var path := "%s/%s" % [dir_path, name]
 		if dir.current_is_dir():
 			_collect_png_asset_paths_recursive(path, results)
-		elif name.get_extension().to_lower() == "png":
+		elif name.get_extension().to_lower() == "png" and path.contains("/16x16/"):
 			results.append(path)
 	dir.list_dir_end()
 
@@ -518,7 +535,7 @@ func _show_next_customer() -> void:
 	_clear()
 	_setup_top_bar(true)
 	var customer := _customer(current_visit["customer_id"])
-	_render_cafe_scene("dialogue", str(current_visit["customer_id"]))
+	_render_cafe_scene("dialogue", str(current_visit["customer_id"]), "", "", true)
 	_add_heading("%s bước vào" % customer["name"])
 	_add_meta("%s · %s" % [customer["short_description"], current_visit["mood"]])
 	_add_paragraph(current_visit["arrival"])
@@ -762,7 +779,7 @@ func _add_keepsake(item: String) -> void:
 func _add_trust(customer_id: String, amount: int) -> void:
 	state["trust"][customer_id] = int(state["trust"].get(customer_id, 0)) + amount
 
-func _render_cafe_scene(mode := "idle", customer_id := "", recipe_id := "", result := "") -> void:
+func _render_cafe_scene(mode := "idle", customer_id := "", recipe_id := "", result := "", animate_entry := false) -> void:
 	if scene_layer == null:
 		return
 	for child in scene_layer.get_children():
@@ -802,10 +819,12 @@ func _render_cafe_scene(mode := "idle", customer_id := "", recipe_id := "", resu
 		_add_customer_in_scene("bao_ve", Vector2(1026, 246), false)
 	if active_customer != "sinh_vien":
 		_add_customer_in_scene("sinh_vien", Vector2(384, 300), false)
-	if active_customer != "":
+	if active_customer != "" and animate_entry:
 		_add_customer_walk_in_scene(active_customer, Vector2(610, 238))
+	elif active_customer != "":
+		_add_customer_at_counter(active_customer, true)
 	elif mode in ["menu", "prep", "closing", "notebook", "recipes", "ending"]:
-		_add_customer_in_scene("tai_xe", Vector2(610, 238), false)
+		_add_customer_at_counter("tai_xe", false)
 
 	_add_counter_front_overlay()
 	_add_table_front_overlays()
@@ -922,6 +941,15 @@ func _add_customer_in_scene(customer_id: String, pos: Vector2, active := false) 
 	customer.play_seated()
 	customer.z_index = int(customer.position.y)
 
+func _add_customer_at_counter(customer_id: String, active := false) -> void:
+	var seat_foot := _counter_customer_seat_foot()
+	if active:
+		_add_warm_light(seat_foot - Vector2(18, 30), Vector2(104, 104), 0.16)
+		_add_scene_label("...", seat_foot + Vector2(26, -48), Vector2(48, 20), Color("#f1d8a0"), 15)
+	var customer := _add_character_sprite(customer_id, seat_foot, "idle_up", Color("#ffffff") if active else Color("#d5c2a6"))
+	customer.play_idle("up")
+	customer.z_index = int(customer.position.y)
+
 func _add_customer_walk_in_scene(customer_id: String, seat_pos: Vector2) -> void:
 	_add_warm_light(seat_pos - Vector2(18, 18), Vector2(104, 104), 0.16)
 	_add_scene_label("...", seat_pos + Vector2(26, -18), Vector2(48, 20), Color("#f1d8a0"), 15)
@@ -937,7 +965,7 @@ func _add_customer_walk_in_scene(customer_id: String, seat_pos: Vector2) -> void
 	walking_seat_foot = seat_foot
 
 func _update_customer_walk(delta: float) -> void:
-	if walking_customer == null or walking_path.is_empty() or walking_customer_state == "seated_idle":
+	if walking_customer == null or walking_path.is_empty() or walking_customer_state == "counter_idle":
 		return
 	if walking_target_index >= walking_path.size():
 		_seat_walking_customer()
@@ -960,11 +988,11 @@ func _update_customer_walk(delta: float) -> void:
 func _seat_walking_customer() -> void:
 	if walking_customer == null:
 		return
-	walking_customer_state = "seated_idle"
+	walking_customer_state = "counter_idle"
 	walking_customer.velocity = Vector2.ZERO
 	walking_customer.flip_h = false
 	walking_customer.position = walking_seat_foot.floor()
-	walking_customer.play_seated()
+	walking_customer.play_idle("up")
 	walking_customer.z_index = int(walking_customer.position.y)
 
 func _counter_customer_seat_foot() -> Vector2:
@@ -1277,6 +1305,7 @@ func _stage_label(text: String, color: Color, font_size := 14) -> Label:
 	label.add_theme_font_size_override("font_size", font_size)
 	label.add_theme_color_override("font_color", color)
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	return label
 
 func _customer_sprite_path(customer_id: String) -> String:
@@ -1315,7 +1344,7 @@ func _recipe_button_text(recipe: Dictionary) -> String:
 	var warmth := int(recipe.get("warmth_level", 0))
 	var caffeine := int(recipe.get("caffeine_level", 0))
 	var comfort := int(recipe.get("comfort_level", 0))
-	return "%s ấm %s | tỉnh %s | dịu %s" % [recipe.get("name", "Món"), warmth, caffeine, comfort]
+	return "%s\nẤm %s · Tỉnh %s · Dịu %s" % [recipe.get("name", "Món"), warmth, caffeine, comfort]
 
 func _add_recipe_menu_book(recipes: Array, selecting_menu: bool) -> void:
 	var book := PanelContainer.new()
@@ -1335,7 +1364,7 @@ func _add_recipe_menu_book(recipes: Array, selecting_menu: bool) -> void:
 	spread.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	margin.add_child(spread)
 
-	var left_page := _menu_page_panel(Vector2(560, 330))
+	var left_page := _menu_page_panel(Vector2(650, 360))
 	spread.add_child(left_page)
 	var left_box := _menu_page_box(left_page)
 	left_box.add_child(_stage_label("Quyển menu đêm", Color("#3a2418"), 20))
@@ -1362,7 +1391,7 @@ func _add_recipe_menu_book(recipes: Array, selecting_menu: bool) -> void:
 			button.pressed.connect(func(): _show_cooking_panel(recipe_id))
 		list.add_child(button)
 
-	var right_page := _menu_page_panel(Vector2(360, 330))
+	var right_page := _menu_page_panel(Vector2(420, 360))
 	spread.add_child(right_page)
 	var right_box := _menu_page_box(right_page)
 	if selecting_menu:
@@ -1406,12 +1435,17 @@ func _menu_page_box(page: PanelContainer) -> VBoxContainer:
 
 func _recipe_menu_button(recipe: Dictionary, selecting_menu: bool) -> Button:
 	var button := Button.new()
-	button.custom_minimum_size = Vector2(0, 58)
+	button.custom_minimum_size = Vector2(0, 76)
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	button.text = _recipe_button_text(recipe)
 	button.icon = _atlas_texture(_recipe_sprite_path(recipe), Rect2(0, 0, 16, 16))
+	button.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	button.vertical_icon_alignment = VERTICAL_ALIGNMENT_CENTER
+	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	button.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	button.tooltip_text = "%s\nTags: %s / %s" % [recipe["description"], ", ".join(recipe.get("flavor_tags", [])), ", ".join(recipe.get("emotion_tags", []))]
 	button.add_theme_color_override("font_color", Color("#3a2418"))
+	button.add_theme_font_size_override("font_size", 15)
 	button.add_theme_stylebox_override("normal", _button_style(Color("#f1d8a0") if selecting_menu else Color("#ead7ad")))
 	button.add_theme_stylebox_override("hover", _button_style(Color("#ffd58a")))
 	button.add_theme_stylebox_override("pressed", _button_style(Color("#d7a64b")))
@@ -1549,6 +1583,7 @@ func _add_heading(text: String) -> void:
 	label.add_theme_font_size_override("font_size", 26)
 	label.add_theme_color_override("font_color", Color("#ffd58a"))
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	content.add_child(label)
 
 func _add_subheading(text: String) -> void:
@@ -1557,6 +1592,7 @@ func _add_subheading(text: String) -> void:
 	label.add_theme_font_size_override("font_size", 19)
 	label.add_theme_color_override("font_color", Color("#f4c27a"))
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	content.add_child(label)
 
 func _add_meta(text: String) -> void:
@@ -1564,6 +1600,7 @@ func _add_meta(text: String) -> void:
 	label.text = text
 	label.add_theme_color_override("font_color", Color("#9fb8b4"))
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	content.add_child(label)
 
 func _add_paragraph(text: String) -> void:
@@ -1572,6 +1609,7 @@ func _add_paragraph(text: String) -> void:
 	label.add_theme_font_size_override("font_size", 16)
 	label.add_theme_color_override("font_color", Color("#e8ddd0"))
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	content.add_child(label)
 
 func _add_dialogue(text: String) -> void:
@@ -1580,6 +1618,7 @@ func _add_dialogue(text: String) -> void:
 	label.add_theme_font_size_override("font_size", 17)
 	label.add_theme_color_override("font_color", Color("#fff1d6"))
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	content.add_child(label)
 
 func _add_note(text: String) -> void:
@@ -1587,6 +1626,7 @@ func _add_note(text: String) -> void:
 	label.text = text
 	label.add_theme_color_override("font_color", Color("#b8d7c5"))
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	content.add_child(label)
 
 func _add_bullet(text: String) -> void:

@@ -7,6 +7,7 @@ Sprite slicing is configured inside the game Settings screen, not through an edi
 - UI: Main Menu -> `Cài đặt` -> `Cấu hình slice sprite asset`
 - Saved presets: `res://data/sprite_slice_presets.json`
 - Runtime reader: `scripts/game/night_cafe_game.gd`
+- Asset list scope: PNG files under `res://assets` whose path contains `/16x16/`.
 
 ## How It Works
 
@@ -39,4 +40,4 @@ When gameplay code creates an animated prop with that same texture path, the run
 
 ## Rule
 
-Do not hardcode one frame size for all sprites. Set the exact preset per PNG asset in Settings, save it, then let runtime code read the preset by texture path.
+Do not hardcode one frame size for all sprites. Set the exact preset per 16x16-pack PNG asset in Settings, save it, then let runtime code read the preset by texture path.

@@ -20,6 +20,17 @@ var sit_frame_height := 16
 var last_direction := "down"
 var state := "idle"
 var velocity := Vector2.ZERO
+var idle_time := 0.0
+var base_offset := Vector2.ZERO
+
+func _process(delta: float) -> void:
+	if state == "idle" or state == "seated_idle":
+		idle_time += delta
+		var bob := -1.0 if int(idle_time * 2.0) % 2 == 1 else 0.0
+		offset = base_offset + Vector2(0, bob)
+	else:
+		idle_time = 0.0
+		offset = base_offset
 
 func configure(id: String, config: Dictionary, requested_animation := "") -> void:
 	character_id = id
@@ -184,11 +195,12 @@ func _load_texture(path: String) -> Texture2D:
 
 func _apply_offset_for_animation(animation_name: String) -> void:
 	if animation_name.begins_with("walk"):
-		offset = Vector2(0, -float(full_frame_height) * 0.5)
+		base_offset = Vector2(0, -float(full_frame_height) * 0.5)
 	elif animation_name == "seated_idle":
-		offset = Vector2(0, -float(sit_frame_height) * 0.5)
+		base_offset = Vector2(0, -float(sit_frame_height) * 0.5)
 	else:
-		offset = Vector2(0, -float(idle_frame_height) * 0.5)
+		base_offset = Vector2(0, -float(idle_frame_height) * 0.5)
+	offset = base_offset
 
 func _validate_grid(texture: Texture2D, label: String, width: int, height: int) -> void:
 	if texture.get_width() % width != 0 or texture.get_height() % height != 0:
