@@ -26,6 +26,7 @@ var walking_customer: CharacterSpriteController
 var walking_customer_state := "idle"
 var walking_path: Array[Vector2] = []
 var walking_target_index := 0
+var walking_seat_foot := Vector2.ZERO
 var screen_history: Array[String] = []
 
 var root_layer: Control
@@ -567,6 +568,7 @@ func _render_cafe_scene(mode := "idle", customer_id := "", recipe_id := "", resu
 	walking_customer_state = "idle"
 	walking_path.clear()
 	walking_target_index = 0
+	walking_seat_foot = Vector2.ZERO
 
 	_add_scene_rect(Vector2.ZERO, Vector2(SCENE_WIDTH, SCENE_HEIGHT), Color("#18202a"))
 	_add_scene_rect(Vector2(0, 0), Vector2(SCENE_WIDTH, 88), Color("#24150d"))
@@ -585,7 +587,7 @@ func _render_cafe_scene(mode := "idle", customer_id := "", recipe_id := "", resu
 
 	_add_counter_and_props()
 	_add_tables_and_seats()
-	_add_character_sprite("player", Vector2(640, 236), "idle_down", Color("#fff3dc"))
+	_add_character_sprite("player", Vector2(640, 248), "idle_down", Color("#fff3dc"))
 
 	var active_customer := customer_id
 	if active_customer != "ban_hoa":
@@ -685,9 +687,9 @@ func _add_counter_and_props() -> void:
 	_add_scene_label("quầy pha", Vector2(584, 210), Vector2(120, 22), Color("#9d8464"), 13)
 
 func _add_counter_front_overlay() -> void:
-	_add_scene_rect(Vector2(284, 206), Vector2(712, 50), Color("#2b1b12"), 260)
-	_add_scene_rect(Vector2(304, 206), Vector2(672, 8), Color("#8f6a45"), 261)
-	_add_scene_rect(Vector2(304, 250), Vector2(672, 6), Color("#1b1009"), 261)
+	_add_scene_rect(Vector2(284, 238), Vector2(712, 18), Color("#2b1b12"), 260)
+	_add_scene_rect(Vector2(304, 238), Vector2(672, 6), Color("#8f6a45"), 261)
+	_add_scene_rect(Vector2(304, 252), Vector2(672, 4), Color("#1b1009"), 261)
 
 func _add_tables_and_seats() -> void:
 	_add_scene_rect(Vector2(142, 244), Vector2(108, 66), Color("#3a2418"))
@@ -700,30 +702,33 @@ func _add_tables_and_seats() -> void:
 		_add_scene_rect(pos, Vector2(34, 28), Color("#2a1a12"))
 
 func _add_table_front_overlays() -> void:
-	_add_scene_rect(Vector2(158, 278), Vector2(76, 16), Color("#6b4728"), 340)
-	_add_scene_rect(Vector2(1024, 278), Vector2(76, 16), Color("#6b4728"), 340)
-	_add_scene_rect(Vector2(374, 330), Vector2(78, 16), Color("#6b4728"), 380)
+	_add_scene_rect(Vector2(158, 292), Vector2(76, 8), Color("#6b4728"), 324)
+	_add_scene_rect(Vector2(1024, 292), Vector2(76, 8), Color("#6b4728"), 324)
+	_add_scene_rect(Vector2(374, 346), Vector2(78, 8), Color("#6b4728"), 370)
 	for pos in [Vector2(590, 274), Vector2(652, 274), Vector2(714, 274)]:
-		_add_scene_rect(pos, Vector2(34, 16), Color("#1b1009"), 340)
+		_add_scene_rect(pos + Vector2(0, 12), Vector2(34, 8), Color("#1b1009"), 310)
 
 func _add_customer_in_scene(customer_id: String, pos: Vector2, active := false) -> void:
 	if active:
 		_add_warm_light(pos - Vector2(18, 18), Vector2(104, 104), 0.16)
 		_add_scene_label("...", pos + Vector2(26, -18), Vector2(48, 20), Color("#f1d8a0"), 15)
-	var customer := _add_character_sprite(customer_id, pos + Vector2(32, 64), "idle_down", Color("#ffffff") if active else Color("#d5c2a6"))
-	customer.sit_down()
+	var customer := _add_character_sprite(customer_id, _seat_foot_for_customer(customer_id, pos), "seated_idle", Color("#ffffff") if active else Color("#d5c2a6"))
+	customer.play_seated()
+	customer.z_index = int(customer.position.y)
 
 func _add_customer_walk_in_scene(customer_id: String, seat_pos: Vector2) -> void:
 	_add_warm_light(seat_pos - Vector2(18, 18), Vector2(104, 104), 0.16)
 	_add_scene_label("...", seat_pos + Vector2(26, -18), Vector2(48, 20), Color("#f1d8a0"), 15)
-	var spawn := Vector2(1190, 198)
-	var approach := Vector2(876, 246)
-	var seat_foot := seat_pos + Vector2(32, 64)
+	var spawn := Vector2(1260, 292)
+	var entry := Vector2(1136, 292)
+	var approach := Vector2(876, 292)
+	var seat_foot := _counter_customer_seat_foot()
 	walking_customer = _add_character_sprite(customer_id, spawn, "walk_left", Color("#ffffff"))
-	walking_customer.set_animation_state("walk", "left")
+	walking_customer.play_walk("left")
 	walking_customer_state = "walking_to_seat"
-	walking_path = [approach, seat_foot]
+	walking_path = [entry, approach, seat_foot]
 	walking_target_index = 0
+	walking_seat_foot = seat_foot
 
 func _update_customer_walk(delta: float) -> void:
 	if walking_customer == null or walking_path.is_empty() or walking_customer_state == "seated_idle":
@@ -735,12 +740,13 @@ func _update_customer_walk(delta: float) -> void:
 	var to_target: Vector2 = target - walking_customer.position
 	if to_target.length() <= 2.0:
 		walking_customer.position = target.floor()
+		walking_customer.z_index = int(walking_customer.position.y)
 		walking_target_index += 1
 		if walking_target_index >= walking_path.size():
 			_seat_walking_customer()
 		return
 	var direction := "right" if to_target.x > 0.0 else "left"
-	walking_customer.set_animation_state("walk", direction)
+	walking_customer.play_walk(direction)
 	walking_customer.position += to_target.normalized() * 82.0 * delta
 	walking_customer.position = walking_customer.position.floor()
 	walking_customer.z_index = int(walking_customer.position.y)
@@ -751,8 +757,25 @@ func _seat_walking_customer() -> void:
 	walking_customer_state = "seated_idle"
 	walking_customer.velocity = Vector2.ZERO
 	walking_customer.flip_h = false
-	walking_customer.sit_down()
+	walking_customer.position = walking_seat_foot.floor()
+	walking_customer.play_seated()
 	walking_customer.z_index = int(walking_customer.position.y)
+
+func _counter_customer_seat_foot() -> Vector2:
+	return Vector2(642, 292)
+
+func _seat_foot_for_customer(customer_id: String, fallback_pos: Vector2) -> Vector2:
+	match customer_id:
+		"ban_hoa":
+			return Vector2(210, 300)
+		"bao_ve":
+			return Vector2(1058, 300)
+		"sinh_vien":
+			return Vector2(416, 352)
+		"tai_xe":
+			return _counter_customer_seat_foot()
+		_:
+			return fallback_pos + Vector2(32, 54)
 
 func _add_steam(origin: Vector2) -> void:
 	for i in 3:
@@ -761,6 +784,7 @@ func _add_steam(origin: Vector2) -> void:
 		steam.position = origin + Vector2(i * 9, -i * 8)
 		steam.size = Vector2(4, 20)
 		steam.rotation = deg_to_rad(-8 + i * 7)
+		steam.z_index = 318
 		scene_layer.add_child(steam)
 		steam_lines.append(steam)
 
@@ -854,7 +878,14 @@ func _add_animated_prop(path: String, foot_position: Vector2, frame_count := -1,
 	var total_frames: int = columns * rows
 	var safe_start_frame: int = clampi(start_frame, 0, max(0, total_frames - 1))
 	var available_frames: int = max(1, total_frames - safe_start_frame)
-	var frames_to_add: int = available_frames if frame_count < 0 else clampi(frame_count, 1, available_frames)
+	var frames_to_add: int
+	if frame_count < 0 and rows > 1:
+		frames_to_add = min(columns, available_frames)
+		push_warning("Animated prop uses first row only because no frame_count was set: %s" % path)
+	elif frame_count < 0:
+		frames_to_add = available_frames
+	else:
+		frames_to_add = clampi(frame_count, 1, available_frames)
 	if texture.get_width() % frame_size.x != 0 or texture.get_height() % frame_size.y != 0:
 		push_error("Invalid animated prop grid: %s is %sx%s, frame %sx%s" % [
 			path,

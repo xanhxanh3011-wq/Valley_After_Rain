@@ -54,23 +54,46 @@ func play_named(animation_name: String) -> void:
 	state = "walk" if animation_name.begins_with("walk") else "idle"
 	_play_if_exists(animation_name)
 
-func set_animation_state(state: String, direction: String) -> void:
+func set_state(new_state: String) -> void:
+	state = new_state
+	if new_state == "seated_idle":
+		play_seated()
+	elif new_state == "walking":
+		play_walk(last_direction)
+	elif new_state == "idle" or new_state == "talking":
+		play_idle(last_direction)
+
+func set_direction(direction: String) -> void:
 	last_direction = direction
-	if state == "walk":
-		if direction == "right":
-			play_named("walk_right")
-		elif direction == "left":
-			play_named("walk_left")
-		else:
-			play_named("idle_%s" % direction)
+
+func play_idle(direction := "down") -> void:
+	last_direction = direction
+	play_named("idle_%s" % direction)
+
+func play_walk(direction := "left") -> void:
+	last_direction = direction
+	if direction == "right":
+		play_named("walk_right")
+	elif direction == "left":
+		play_named("walk_left")
 	else:
 		play_named("idle_%s" % direction)
 
-func sit_down() -> void:
+func play_seated() -> void:
 	state = "seated_idle"
 	last_direction = "down"
 	flip_h = false
-	_play_if_exists("idle_down")
+	_play_if_exists("seated_idle")
+
+func set_animation_state(state: String, direction: String) -> void:
+	last_direction = direction
+	if state == "walk":
+		play_walk(direction)
+	else:
+		play_idle(direction)
+
+func sit_down() -> void:
+	play_seated()
 
 func face_down_or_seated() -> void:
 	sit_down()

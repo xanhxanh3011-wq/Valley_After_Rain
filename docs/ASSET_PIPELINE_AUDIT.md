@@ -173,12 +173,37 @@ Runtime script: `res://scripts/game/night_cafe_game.gd`
 
 No runtime node now uses the old `animated_*_32x32.png` paths.
 
+## World Scene Seating / Layering Audit
+
+Current runtime node generation in `night_cafe_game.gd`:
+
+| Runtime element | Node type | Texture / source | Position / z rule | Notes |
+|---|---|---|---|---|
+| Player behind counter | `CharacterSpriteController` | `Chef_Alex_idle_16x16.png`, `16x32` idle frame | foot `Vector2(640, 248)`, z by y | Counter front is only `y=238..256`, so it covers lower body only. |
+| Active walk-in customer | `CharacterSpriteController` | mapped LimeZu character sheet | path `1260,292 -> 1136,292 -> 876,292 -> 642,292` | Walks left/right, then snaps to counter seat and plays `seated_idle`. |
+| Flower seller seat | `CharacterSpriteController` | `Old_woman_Jenny_*` | foot `Vector2(210, 300)` | Front overlay is `y=292..300`, so only lower body is hidden. |
+| Guard seat | `CharacterSpriteController` | `Old_man_Josh_*` | foot `Vector2(1058, 300)` | Uses `seated_idle`, not side/walk frame. |
+| Student seat | `CharacterSpriteController` | `Samuel_*` | foot `Vector2(416, 352)` | Front overlay is `y=346..354`, only lower body is hidden. |
+| Counter guest seat | `CharacterSpriteController` | mapped LimeZu character sheet | foot `Vector2(642, 292)` | Seat lip is `y=286..294`, z `310`. |
+| Steam | `ColorRect` ambience FX | procedural, no atlas | z `318` | No sprite atlas involved. |
+| Rain | `ColorRect` ambience FX | procedural, no atlas | default world overlay | No sprite atlas involved. |
+
+`CharacterSpriteController.play_seated()` now forces:
+
+- `state = "seated_idle"`
+- `last_direction = "down"`
+- `flip_h = false`
+- animation `seated_idle`, which falls back to the front-facing `idle_down` frame unless a validated seated pose is explicitly enabled.
+
+This prevents customers from keeping `walk_left`, `walk_right`, or `idle_left` after reaching a table.
+
 ## Fixed Slicing / Scale Issues
 
 - Cat previously used `animated_cat_32x32.png` from the 32px folder. It now uses `animated_cat.png` from the 16px LimeZu folder, sliced as 36 frames of `16x16`, scale `3x`.
 - Coffee/candle/pan/sink/toaster previously used 32px animated object paths. They now use 16px LimeZu files and grid-slice `16x16`.
 - Coffee/candle/pan previously risked animating across the whole multi-row atlas. Runtime now uses only the first-row strip for each object.
 - `_add_animated_prop()` previously assumed a 32px horizontal strip. It now reads actual texture width/height, frame size, frame count, and optional start frame.
+- `_add_animated_prop()` now also guards multi-row atlases: if no `frame_count` is provided, only the first row is animated and a warning is emitted.
 - `_add_scene_sprite()` default region now uses `AssetCatalog.TILE_SIZE`, currently `16`.
 - `AssetCatalog.TILE_SIZE` is now `16`.
 - UI recipe icon sizes were changed to integer multiples of `16` (`80px` or `48px`) to avoid fractional scaling.
