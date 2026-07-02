@@ -133,7 +133,22 @@ Runtime prop files are exact copies from:
 
 `D:\GameMaking\game assets\Modern_Interiors\3_Animated_objects\16x16\spritesheets`
 
-The asset pack also includes 16px GIF previews under `3_Animated_objects\16x16\gif`, including cat/candle/coffee. Godot 4.7 does not load those GIF files as textures in this project (`ResourceLoader.load()` returns `null`), so runtime uses the matching PNG sprite sheets/strips instead. This keeps the same source art while remaining loadable by Godot.
+The asset pack also includes 16px GIF previews under `3_Animated_objects\16x16\gif`, including cat/candle/coffee. Godot 4.7 does not load those GIF files as textures in this project (`ResourceLoader.load()` returns `null`), so `GifDecorationLoader` accepts the GIF path as a decoration handle and resolves it to the matching PNG sprite sheet/strip. This keeps the same source art while remaining loadable by Godot.
+
+Runtime GIF decoration handles copied into the project:
+
+- `res://assets/limezu/animated_objects/16x16/gif/animated_cat.gif`
+- `res://assets/limezu/animated_objects/16x16/gif/animated_candle.gif`
+- `res://assets/limezu/animated_objects/16x16/gif/animated_coffee.gif`
+- `res://assets/limezu/animated_objects/16x16/gif/animated_kitchen_pan_with_omelette_16x16.gif`
+
+Loader:
+
+- `res://scripts/visual/gif_decoration_loader.gd`
+- `animated_cat.gif` -> `animated_cat.png`, frames `0..35`
+- `animated_candle.gif` -> `animated_candle.png`, frames `0..2`
+- `animated_coffee.gif` -> `animated_coffee.png`, frames `0..5`
+- `animated_kitchen_pan_with_omelette_16x16.gif` -> `animated_kitchen_pan_with_omelette.png`, frames `0..15`
 
 Project path:
 

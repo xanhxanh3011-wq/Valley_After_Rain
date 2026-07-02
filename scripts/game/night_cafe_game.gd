@@ -5,6 +5,7 @@ const CHARACTER_DATA_PATH := "res://data/characters.json"
 const SAVE_PATH := "user://night_cafe_demo_save.json"
 const AssetCatalog := preload("res://scripts/core/asset_catalog.gd")
 const CharacterSpriteController := preload("res://scripts/visual/character_sprite_controller.gd")
+const GifDecorationLoader := preload("res://scripts/visual/gif_decoration_loader.gd")
 const SCENE_WIDTH := 1280.0
 const SCENE_HEIGHT := 410.0
 
@@ -17,6 +18,7 @@ var current_visit: Dictionary = {}
 var current_choice: Dictionary = {}
 var selected_menu: Array[String] = []
 var menu_recipe_buttons: Dictionary = {}
+var menu_selection_label: Label
 var ambience_enabled := true
 var rain_lines: Array[ColorRect] = []
 var steam_lines: Array[ColorRect] = []
@@ -256,6 +258,7 @@ func _show_prep() -> void:
 	_unlock_recipes_for_current_night()
 	selected_menu.clear()
 	menu_recipe_buttons.clear()
+	menu_selection_label = null
 	var night: Dictionary = data["nights"][current_night_index]
 	_render_cafe_scene("prep")
 	_add_heading("Trước khi mở quán")
@@ -266,17 +269,7 @@ func _show_prep() -> void:
 		_add_bullet(note)
 	_add_subheading("Chọn vài món nổi bật cho menu đêm nay")
 	_add_paragraph("Không ảnh hưởng nặng đến điểm số; đây là nhịp chuẩn bị để bạn đọc mood của đêm.")
-	var grid := GridContainer.new()
-	grid.columns = 2
-	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	for recipe in _available_recipes():
-		var recipe_id: String = str(recipe["id"])
-		var b := _button(str(recipe["name"]), func(): _toggle_menu_recipe(recipe_id))
-		b.tooltip_text = recipe["description"]
-		menu_recipe_buttons[recipe_id] = b
-		_update_menu_recipe_button(recipe_id)
-		grid.add_child(b)
-	content.add_child(grid)
+	_add_recipe_menu_book(_available_recipes(), true)
 	_add_note("Menu đêm nay: chọn tối đa 5 món. Nếu bỏ trống, quán sẽ dọn sẵn 5 món đầu.")
 	content.add_child(_button("Mở quán", _start_night))
 
@@ -326,15 +319,7 @@ func _show_recipe_selection() -> void:
 	_add_subheading("Chọn món / đồ uống")
 	_add_paragraph("Hãy chọn theo lời khách, thời tiết, những gì bạn nhớ, và cảm giác của đêm.")
 	_add_filter_chips(["Đồ uống", "Món nóng", "Món no bụng", "Món dịu", "Món tỉnh táo"])
-	var grid := GridContainer.new()
-	grid.columns = 3
-	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	for recipe in _available_recipes():
-		var recipe_id: String = str(recipe["id"])
-		var b := _button(_recipe_button_text(recipe), func(): _show_cooking_panel(recipe_id))
-		b.tooltip_text = "%s\nTags: %s / %s" % [recipe["description"], ", ".join(recipe.get("flavor_tags", [])), ", ".join(recipe.get("emotion_tags", []))]
-		grid.add_child(b)
-	content.add_child(grid)
+	_add_recipe_menu_book(_available_recipes(), false)
 
 func _show_cooking_panel(recipe_id: String) -> void:
 	var recipe := _recipe(recipe_id)
@@ -603,7 +588,7 @@ func _render_cafe_scene(mode := "idle", customer_id := "", recipe_id := "", resu
 
 	_add_counter_front_overlay()
 	_add_table_front_overlays()
-	_add_animated_prop(AssetCatalog.LIMEZU_ANIMATED_16_DIR + "animated_cat.png", Vector2(110, 390), 36, Vector2i(16, 16), 3.0, 4.0, Color("#ffe8c2"))
+	_add_gif_decoration(AssetCatalog.LIMEZU_ANIMATED_16_GIF_DIR + "animated_cat.gif", Vector2(110, 390), 3.0, Color("#ffe8c2"))
 	_add_steam(Vector2(548, 180))
 	_add_steam(Vector2(705, 182))
 	_add_scene_status(mode, customer_id, recipe_id, result)
@@ -677,10 +662,10 @@ func _add_counter_and_props() -> void:
 	_add_scene_rect(Vector2(284, 182), Vector2(712, 74), Color("#3a2418"), 20)
 	_add_scene_rect(Vector2(304, 194), Vector2(672, 10), Color("#8f6a45"), 20)
 	_add_scene_rect(Vector2(508, 112), Vector2(250, 34), Color("#332016"))
-	_add_animated_prop(AssetCatalog.LIMEZU_ANIMATED_16_DIR + "animated_coffee.png", Vector2(552, 198), 6, Vector2i(16, 16), 3.0, 4.0, Color("#fff0d0"))
-	_add_animated_prop(AssetCatalog.LIMEZU_ANIMATED_16_DIR + "animated_kitchen_pan_with_omelette.png", Vector2(712, 198), 16, Vector2i(16, 16), 3.0, 5.0, Color("#fff0d0"))
+	_add_gif_decoration(AssetCatalog.LIMEZU_ANIMATED_16_GIF_DIR + "animated_coffee.gif", Vector2(552, 198), 3.0, Color("#fff0d0"))
+	_add_gif_decoration(AssetCatalog.LIMEZU_ANIMATED_16_GIF_DIR + "animated_kitchen_pan_with_omelette_16x16.gif", Vector2(712, 198), 3.0, Color("#fff0d0"))
 	_add_animated_prop(AssetCatalog.LIMEZU_ANIMATED_16_DIR + "animated_kitchen_sink_1.png", Vector2(792, 198), 6, Vector2i(16, 16), 3.0, 3.0, Color("#fff0d0"))
-	_add_animated_prop(AssetCatalog.LIMEZU_ANIMATED_16_DIR + "animated_candle.png", Vector2(436, 198), 3, Vector2i(16, 16), 3.0, 5.0, Color("#ffdca2"))
+	_add_gif_decoration(AssetCatalog.LIMEZU_ANIMATED_16_GIF_DIR + "animated_candle.gif", Vector2(436, 198), 3.0, Color("#ffdca2"))
 	_add_scene_rect(Vector2(894, 142), Vector2(38, 52), Color("#24412b"))
 	_add_scene_rect(Vector2(906, 118), Vector2(14, 26), Color("#4c7a47"))
 	_add_scene_rect(Vector2(930, 130), Vector2(14, 18), Color("#5c8a52"))
@@ -915,6 +900,21 @@ func _add_animated_prop(path: String, foot_position: Vector2, frame_count := -1,
 	prop.play()
 	return prop
 
+func _add_gif_decoration(gif_path: String, foot_position: Vector2, pixel_scale := 3.0, tint := Color.WHITE) -> AnimatedSprite2D:
+	var prop := AnimatedSprite2D.new()
+	prop.sprite_frames = GifDecorationLoader.create_sprite_frames(gif_path)
+	prop.animation = "loop"
+	prop.centered = true
+	prop.offset = Vector2(0, -float(AssetCatalog.TILE_SIZE) * 0.5)
+	prop.position = foot_position.floor()
+	prop.scale = Vector2(pixel_scale, pixel_scale)
+	prop.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	prop.modulate = tint
+	prop.z_index = int(foot_position.y)
+	scene_layer.add_child(prop)
+	prop.play()
+	return prop
+
 func _add_character_sprite(character_id: String, foot_position: Vector2, animation_name := "", tint := Color.WHITE) -> CharacterSpriteController:
 	var controller := CharacterSpriteController.new()
 	controller.position = foot_position.floor()
@@ -1093,6 +1093,115 @@ func _recipe_button_text(recipe: Dictionary) -> String:
 	var comfort := int(recipe.get("comfort_level", 0))
 	return "%s ấm %s | tỉnh %s | dịu %s" % [recipe.get("name", "Món"), warmth, caffeine, comfort]
 
+func _add_recipe_menu_book(recipes: Array, selecting_menu: bool) -> void:
+	var book := PanelContainer.new()
+	book.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	book.add_theme_stylebox_override("panel", _panel_style(Color("#2a1a12"), Color("#d7a64b"), 8))
+	content.add_child(book)
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 14)
+	margin.add_theme_constant_override("margin_right", 14)
+	margin.add_theme_constant_override("margin_top", 14)
+	margin.add_theme_constant_override("margin_bottom", 14)
+	book.add_child(margin)
+
+	var spread := HBoxContainer.new()
+	spread.add_theme_constant_override("separation", 12)
+	spread.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	margin.add_child(spread)
+
+	var left_page := _menu_page_panel(Vector2(560, 330))
+	spread.add_child(left_page)
+	var left_box := _menu_page_box(left_page)
+	left_box.add_child(_stage_label("Quyển menu đêm", Color("#3a2418"), 20))
+	left_box.add_child(_stage_label("Chọn món bằng icon và ghi chú hương vị.", Color("#6b4728"), 13))
+
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	left_box.add_child(scroll)
+
+	var list := VBoxContainer.new()
+	list.add_theme_constant_override("separation", 8)
+	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(list)
+
+	for recipe in recipes:
+		var recipe_id: String = str(recipe["id"])
+		var button := _recipe_menu_button(recipe, selecting_menu)
+		if selecting_menu:
+			button.pressed.connect(func(): _toggle_menu_recipe(recipe_id))
+			menu_recipe_buttons[recipe_id] = button
+			_update_menu_recipe_button(recipe_id)
+		else:
+			button.pressed.connect(func(): _show_cooking_panel(recipe_id))
+		list.add_child(button)
+
+	var right_page := _menu_page_panel(Vector2(360, 330))
+	spread.add_child(right_page)
+	var right_box := _menu_page_box(right_page)
+	if selecting_menu:
+		right_box.add_child(_stage_label("Ghi chú chuẩn bị", Color("#3a2418"), 20))
+		right_box.add_child(_stage_label("Chọn tối đa 5 món. Đây là nhịp mở quán, không phải bảng điểm.", Color("#6b4728"), 14))
+		right_box.add_child(_stage_label("Đã chọn", Color("#7a4d31"), 15))
+		menu_selection_label = _stage_label("", Color("#3a2418"), 14)
+		right_box.add_child(menu_selection_label)
+		_refresh_menu_selection_label()
+	else:
+		right_box.add_child(_stage_label("Chọn món đúng lúc", Color("#3a2418"), 20))
+		var customer_id := str(current_visit.get("customer_id", ""))
+		if customer_id != "":
+			var customer := _customer(customer_id)
+			right_box.add_child(_stage_label(str(customer.get("name", "Khách ghé quán")), Color("#7a4d31"), 16))
+			right_box.add_child(_stage_label(str(current_visit.get("mood", "")), Color("#6b4728"), 14))
+		right_box.add_child(_stage_label("Đọc lời khách, thời tiết, và ghi chú cũ. Món hợp không nhất thiết là món mạnh nhất.", Color("#3a2418"), 14))
+		right_box.add_child(_stage_label("Ấm: đêm mưa. Tỉnh: còn việc phải làm. Dịu: đã quá mệt.", Color("#3a2418"), 13))
+
+func _menu_page_panel(min_size: Vector2) -> PanelContainer:
+	var panel := PanelContainer.new()
+	panel.custom_minimum_size = min_size
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	panel.add_theme_stylebox_override("panel", _panel_style(Color("#ead7ad"), Color("#8f6a45"), 5))
+	return panel
+
+func _menu_page_box(page: PanelContainer) -> VBoxContainer:
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 14)
+	margin.add_theme_constant_override("margin_right", 14)
+	margin.add_theme_constant_override("margin_top", 12)
+	margin.add_theme_constant_override("margin_bottom", 12)
+	page.add_child(margin)
+
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 8)
+	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	box.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	margin.add_child(box)
+	return box
+
+func _recipe_menu_button(recipe: Dictionary, selecting_menu: bool) -> Button:
+	var button := Button.new()
+	button.custom_minimum_size = Vector2(0, 58)
+	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	button.text = _recipe_button_text(recipe)
+	button.icon = _atlas_texture(_recipe_sprite_path(recipe), Rect2(0, 0, 16, 16))
+	button.tooltip_text = "%s\nTags: %s / %s" % [recipe["description"], ", ".join(recipe.get("flavor_tags", [])), ", ".join(recipe.get("emotion_tags", []))]
+	button.add_theme_color_override("font_color", Color("#3a2418"))
+	button.add_theme_stylebox_override("normal", _button_style(Color("#f1d8a0") if selecting_menu else Color("#ead7ad")))
+	button.add_theme_stylebox_override("hover", _button_style(Color("#ffd58a")))
+	button.add_theme_stylebox_override("pressed", _button_style(Color("#d7a64b")))
+	return button
+
+func _recipe_note_row(recipe: Dictionary) -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	row.add_child(_asset_texture_rect(_recipe_sprite_path(recipe), Vector2(32, 32)))
+	var label := _stage_label(str(recipe.get("name", "Món")), Color("#3a2418"), 14)
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(label)
+	return row
+
 func _update_menu_recipe_button(recipe_id: String) -> void:
 	if not menu_recipe_buttons.has(recipe_id):
 		return
@@ -1103,7 +1212,20 @@ func _update_menu_recipe_button(recipe_id: String) -> void:
 	if button == null:
 		return
 	var prefix := "[x] " if selected_menu.has(recipe_id) else "[ ] "
-	button.text = "%s%s" % [prefix, recipe.get("name", recipe_id)]
+	button.text = "%s%s" % [prefix, _recipe_button_text(recipe)]
+	_refresh_menu_selection_label()
+
+func _refresh_menu_selection_label() -> void:
+	if menu_selection_label == null:
+		return
+	if selected_menu.is_empty():
+		menu_selection_label.text = "Chưa chọn món nào. Nếu để trống, quán tự bày 5 món đầu."
+		return
+	var names: Array[String] = []
+	for recipe_id in selected_menu:
+		var recipe := _recipe(recipe_id)
+		names.append("• %s" % str(recipe.get("name", recipe_id)))
+	menu_selection_label.text = "\n".join(names)
 
 func _add_filter_chips(labels: Array, active := false) -> void:
 	var flow := HFlowContainer.new()

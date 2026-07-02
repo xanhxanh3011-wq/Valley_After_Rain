@@ -17,9 +17,9 @@
 ## Implemented UI States
 
 - Main menu over cafe scene.
-- Prep/menu selection.
+- Prep/menu selection as a two-page warm paper menu with recipe icons and a live selected-items page.
 - Dialogue with customer choices.
-- Recipe selection with filter chips.
+- Recipe selection with filter chips and a sidepanel-style menu book: left page recipe list, right page customer/mood notes.
 - Cooking panel with item preview, flavor/emotion chips, and actions.
 - Serve reaction.
 - Notebook styled as paper note cards with tabs.
