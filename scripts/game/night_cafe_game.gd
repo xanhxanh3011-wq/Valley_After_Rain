@@ -20,6 +20,7 @@ var current_choice: Dictionary = {}
 var selected_menu: Array[String] = []
 var menu_recipe_buttons: Dictionary = {}
 var menu_selection_label: Label
+var selected_slice_texture := ""
 var ambience_enabled := true
 var rain_lines: Array[ColorRect] = []
 var steam_lines: Array[ColorRect] = []
@@ -239,7 +240,225 @@ func _show_settings() -> void:
 	)
 	content.add_child(ambience_button)
 	content.add_child(_button("Fullscreen / Windowed", func(): DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if DisplayServer.window_get_mode() != DisplayServer.WINDOW_MODE_FULLSCREEN else DisplayServer.WINDOW_MODE_WINDOWED)))
+	_add_sprite_slice_settings_panel()
 	content.add_child(_button("Quay lại", _show_main_menu))
+
+func _add_sprite_slice_settings_panel() -> void:
+	var asset_paths := _collect_png_asset_paths()
+	if selected_slice_texture == "":
+		selected_slice_texture = _default_slice_texture(asset_paths)
+
+	var texture := load(selected_slice_texture) as Texture2D
+	var preset: Dictionary = sprite_slice_presets.get(selected_slice_texture, {})
+	var frame_width := int(preset.get("frame_width", 16))
+	var frame_height := int(preset.get("frame_height", 16))
+	var start_frame := int(preset.get("start_frame", 0))
+	var slice_count := int(preset.get("slice_count", 0))
+	var fps := int(preset.get("fps", 4))
+	var loop := bool(preset.get("loop", true))
+
+	var panel := PanelContainer.new()
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	panel.add_theme_stylebox_override("panel", _panel_style(Color("#2a1a12"), Color("#d7a64b"), 8))
+	content.add_child(panel)
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 14)
+	margin.add_theme_constant_override("margin_right", 14)
+	margin.add_theme_constant_override("margin_top", 14)
+	margin.add_theme_constant_override("margin_bottom", 14)
+	panel.add_child(margin)
+
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 10)
+	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	margin.add_child(box)
+
+	box.add_child(_stage_label("Cấu hình slice sprite asset", Color("#ffd58a"), 20))
+	box.add_child(_stage_label("Áp dụng cho mọi PNG trong assets. Code nào dùng đúng texture path này sẽ tự đọc preset đã lưu.", Color("#e8ddd0"), 14))
+
+	var picker := OptionButton.new()
+	picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	for path in asset_paths:
+		picker.add_item(path.get_file())
+		picker.set_item_metadata(picker.item_count - 1, path)
+		if path == selected_slice_texture:
+			picker.select(picker.item_count - 1)
+	picker.item_selected.connect(func(index: int):
+		selected_slice_texture = str(picker.get_item_metadata(index))
+		_show_settings()
+	)
+	box.add_child(_labeled_control("Chọn PNG asset đã scan", picker))
+
+	var texture_path_edit := LineEdit.new()
+	texture_path_edit.text = selected_slice_texture
+	texture_path_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	box.add_child(_labeled_control("Hoặc nhập texture path thủ công", texture_path_edit))
+
+	var info_text := "Chưa load được texture."
+	if texture != null:
+		info_text = "Kích thước ảnh: %sx%s. Preset hiện tại: %sx%s, start %s, slice %s." % [
+			texture.get_width(),
+			texture.get_height(),
+			frame_width,
+			frame_height,
+			start_frame,
+			"auto" if slice_count <= 0 else str(slice_count)
+		]
+	box.add_child(_stage_label(info_text, Color("#b8d7c5") if texture != null else Color("#ff9b8a"), 13))
+
+	if texture != null:
+		box.add_child(_sprite_slice_preview(selected_slice_texture, texture, frame_width, frame_height, start_frame))
+
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 12)
+	grid.add_theme_constant_override("v_separation", 8)
+	box.add_child(grid)
+
+	var frame_width_spin := _settings_spin(grid, "Frame width", 1, 512, frame_width)
+	var frame_height_spin := _settings_spin(grid, "Frame height", 1, 512, frame_height)
+	var start_frame_spin := _settings_spin(grid, "Start frame", 0, 9999, start_frame)
+	var slice_count_spin := _settings_spin(grid, "Slice count (0 = auto)", 0, 9999, slice_count)
+	var fps_spin := _settings_spin(grid, "FPS", 1, 60, fps)
+
+	var loop_check := CheckBox.new()
+	loop_check.text = "Loop animation"
+	loop_check.button_pressed = loop
+	loop_check.add_theme_color_override("font_color", Color("#f1d8a0"))
+	grid.add_child(loop_check)
+
+	var actions := HBoxContainer.new()
+	actions.add_theme_constant_override("separation", 10)
+	actions.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	box.add_child(actions)
+
+	actions.add_child(_button("Lưu preset slice", func():
+		var path := texture_path_edit.text.strip_edges()
+		if path == "":
+			return
+		selected_slice_texture = path
+		sprite_slice_presets[path] = {
+			"animation_name": "loop",
+			"fps": int(fps_spin.value),
+			"frame_height": int(frame_height_spin.value),
+			"frame_width": int(frame_width_spin.value),
+			"loop": loop_check.button_pressed,
+			"output_path": "res://assets/spriteframes/%s_%sx%s_%s.tres" % [
+				path.get_file().get_basename(),
+				int(frame_width_spin.value),
+				int(frame_height_spin.value),
+				int(slice_count_spin.value)
+			],
+			"slice_count": int(slice_count_spin.value),
+			"start_frame": int(start_frame_spin.value)
+		}
+		_save_sprite_slice_presets()
+		_show_settings()
+	))
+	actions.add_child(_button("Xóa preset asset này", func():
+		var path := texture_path_edit.text.strip_edges()
+		if sprite_slice_presets.has(path):
+			sprite_slice_presets.erase(path)
+			_save_sprite_slice_presets()
+		selected_slice_texture = path
+		_show_settings()
+	))
+
+func _collect_png_asset_paths(root_path := "res://assets") -> Array[String]:
+	var results: Array[String] = []
+	_collect_png_asset_paths_recursive(root_path, results)
+	results.sort()
+	return results
+
+func _collect_png_asset_paths_recursive(dir_path: String, results: Array[String]) -> void:
+	var dir := DirAccess.open(dir_path)
+	if dir == null:
+		return
+	dir.list_dir_begin()
+	while true:
+		var name := dir.get_next()
+		if name == "":
+			break
+		if name.begins_with("."):
+			continue
+		var path := "%s/%s" % [dir_path, name]
+		if dir.current_is_dir():
+			_collect_png_asset_paths_recursive(path, results)
+		elif name.get_extension().to_lower() == "png":
+			results.append(path)
+	dir.list_dir_end()
+
+func _default_slice_texture(asset_paths: Array[String]) -> String:
+	var cat_path := AssetCatalog.LIMEZU_ANIMATED_16_DIR + "animated_cat.png"
+	if asset_paths.has(cat_path):
+		return cat_path
+	if not sprite_slice_presets.is_empty():
+		return str(sprite_slice_presets.keys()[0])
+	return asset_paths[0] if not asset_paths.is_empty() else cat_path
+
+func _sprite_slice_preview(path: String, texture: Texture2D, frame_width: int, frame_height: int, start_frame: int) -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 10)
+	var preview := TextureRect.new()
+	preview.custom_minimum_size = Vector2(80, 80)
+	preview.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	preview.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	preview.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+
+	if frame_width > 0 and frame_height > 0 and texture.get_width() % frame_width == 0 and texture.get_height() % frame_height == 0:
+		var columns: int = max(1, int(texture.get_width() / frame_width))
+		var total_frames: int = columns * max(1, int(texture.get_height() / frame_height))
+		var safe_frame: int = clampi(start_frame, 0, max(0, total_frames - 1))
+		var atlas := AtlasTexture.new()
+		atlas.atlas = texture
+		atlas.region = Rect2(
+			(safe_frame % columns) * frame_width,
+			int(safe_frame / columns) * frame_height,
+			frame_width,
+			frame_height
+		)
+		preview.texture = atlas
+		row.add_child(preview)
+		row.add_child(_stage_label("Preview frame %s của %s" % [safe_frame, path.get_file()], Color("#f1d8a0"), 13))
+	else:
+		preview.texture = texture
+		row.add_child(preview)
+		row.add_child(_stage_label("Frame size chưa chia hết texture. Hãy chỉnh width/height rồi lưu.", Color("#ff9b8a"), 13))
+	return row
+
+func _settings_spin(parent: Control, label_text: String, min_value: int, max_value: int, default_value: int) -> SpinBox:
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 3)
+	var label := _stage_label(label_text, Color("#f1d8a0"), 13)
+	box.add_child(label)
+	var spin := SpinBox.new()
+	spin.min_value = min_value
+	spin.max_value = max_value
+	spin.step = 1
+	spin.value = default_value
+	spin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	box.add_child(spin)
+	parent.add_child(box)
+	return spin
+
+func _labeled_control(label_text: String, control: Control) -> VBoxContainer:
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 3)
+	var label := _stage_label(label_text, Color("#f1d8a0"), 13)
+	box.add_child(label)
+	box.add_child(control)
+	return box
+
+func _save_sprite_slice_presets() -> void:
+	var dir := SPRITE_SLICE_PRESET_PATH.get_base_dir()
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(dir))
+	var file := FileAccess.open(SPRITE_SLICE_PRESET_PATH, FileAccess.WRITE)
+	if file == null:
+		push_error("Cannot write sprite slice presets: %s" % SPRITE_SLICE_PRESET_PATH)
+		return
+	file.store_string(JSON.stringify(sprite_slice_presets, "\t"))
+	file.close()
 
 func _show_credits() -> void:
 	_clear()
