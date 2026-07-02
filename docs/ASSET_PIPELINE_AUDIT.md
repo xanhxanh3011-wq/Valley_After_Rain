@@ -53,10 +53,11 @@ Idle sheets:
 - Size: `64x32`
 - Frame size: `16x32`
 - Frame order:
-  - `Rect2(0, 0, 16, 32)` = `idle_left`
+  - `Rect2(0, 0, 16, 32)` = `idle_right`
   - `Rect2(16, 0, 16, 32)` = `idle_up`
-  - `Rect2(32, 0, 16, 32)` = `idle_down`
-  - `Rect2(48, 0, 16, 32)` = `idle_right`
+  - `Rect2(32, 0, 16, 32)` = `idle_left`
+  - `Rect2(48, 0, 16, 32)` = `idle_down`
+  - Note: this was visually verified from `Adam_idle_16x16.png`; frame `3`, not frame `2`, is the front-facing/camera-facing pose.
 
 Full sheets:
 
@@ -91,7 +92,7 @@ Walk slicing currently used:
 Seated runtime:
 
 - Seated/chờ ở bàn hiện dùng `idle_down` từ idle sheet.
-- Runtime frame là `Rect2(32, 0, 16, 32)`.
+- Runtime frame là `Rect2(48, 0, 16, 32)`.
 - `flip_h = false`.
 - Đây là quyết định cố ý vì các `{name}_sit_16x16.png` hiện có trong workspace là side-profile strip, làm NPC ở bàn bị quay ngang.
 
@@ -124,13 +125,15 @@ Scene-level customer walk-in state currently uses:
 - `walking_to_seat`
 - `seated_idle`
 
-When the customer reaches the seat, the scene calls `sit_down()`, zeroes velocity, sets `flip_h = false`, and keeps the character on `idle_down`.
+When the customer reaches the seat, the scene calls `play_seated()`, zeroes velocity, sets `flip_h = false`, and keeps the character on front-facing `idle_down`.
 
 ## Animated Object Audit
 
 Runtime prop files are exact copies from:
 
 `D:\GameMaking\game assets\Modern_Interiors\3_Animated_objects\16x16\spritesheets`
+
+The asset pack also includes 16px GIF previews under `3_Animated_objects\16x16\gif`, including cat/candle/coffee. Godot 4.7 does not load those GIF files as textures in this project (`ResourceLoader.load()` returns `null`), so runtime uses the matching PNG sprite sheets/strips instead. This keeps the same source art while remaining loadable by Godot.
 
 Project path:
 

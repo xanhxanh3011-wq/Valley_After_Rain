@@ -22,7 +22,7 @@ func _add_player() -> void:
 	add_child(player)
 
 func _add_asset_wall() -> void:
-	_add_sample("LimeZu Adam idle_down 16x32", AssetCatalog.LIMEZU_CHARACTER_16_DIR + "Adam_idle_16x16.png", Vector2(64, 56), Rect2(32, 0, 16, 32), 3.0)
+	_add_sample("LimeZu Adam idle_down 16x32", AssetCatalog.LIMEZU_CHARACTER_16_DIR + "Adam_idle_16x16.png", Vector2(64, 56), Rect2(48, 0, 16, 32), 3.0)
 	_add_sample("LimeZu cat first frame 16x16", AssetCatalog.LIMEZU_ANIMATED_16_DIR + "animated_cat.png", Vector2(360, 56), Rect2(0, 0, 16, 16), 3.0)
 	_add_sample("LimeZu coffee first frame 16x16", AssetCatalog.LIMEZU_ANIMATED_16_DIR + "animated_coffee.png", Vector2(640, 56), Rect2(0, 0, 16, 16), 3.0)
 	_add_sample("LimeZu candle first frame 16x16", AssetCatalog.LIMEZU_ANIMATED_16_DIR + "animated_candle.png", Vector2(900, 56), Rect2(0, 0, 16, 16), 3.0)

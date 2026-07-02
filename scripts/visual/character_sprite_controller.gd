@@ -2,10 +2,10 @@ class_name CharacterSpriteController
 extends AnimatedSprite2D
 
 const IDLE_FRAME_ORDER := {
-	"left": 0,
+	"right": 0,
 	"up": 1,
-	"down": 2,
-	"right": 3
+	"left": 2,
+	"down": 3
 }
 
 var character_id := ""
