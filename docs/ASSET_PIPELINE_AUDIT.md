@@ -133,22 +133,7 @@ Runtime prop files are exact copies from:
 
 `D:\GameMaking\game assets\Modern_Interiors\3_Animated_objects\16x16\spritesheets`
 
-The asset pack also includes 16px GIF previews under `3_Animated_objects\16x16\gif`, including cat/candle/coffee. Godot 4.7 does not load those GIF files as textures in this project (`ResourceLoader.load()` returns `null`), so `GifDecorationLoader` accepts the GIF path as a decoration handle and resolves it to the matching PNG sprite sheet/strip. This keeps the same source art while remaining loadable by Godot.
-
-Runtime GIF decoration handles copied into the project:
-
-- `res://assets/limezu/animated_objects/16x16/gif/animated_cat.gif`
-- `res://assets/limezu/animated_objects/16x16/gif/animated_candle.gif`
-- `res://assets/limezu/animated_objects/16x16/gif/animated_coffee.gif`
-- `res://assets/limezu/animated_objects/16x16/gif/animated_kitchen_pan_with_omelette_16x16.gif`
-
-Loader:
-
-- `res://scripts/visual/gif_decoration_loader.gd`
-- `animated_cat.gif` -> `animated_cat.png`, frames `0..35`
-- `animated_candle.gif` -> `animated_candle.png`, frames `0..2`
-- `animated_coffee.gif` -> `animated_coffee.png`, frames `0..5`
-- `animated_kitchen_pan_with_omelette_16x16.gif` -> `animated_kitchen_pan_with_omelette.png`, frames `0..15`
+Runtime decorations use PNG sprite sheets directly. GIF previews from the asset pack are not used in-game.
 
 Project path:
 
@@ -156,7 +141,7 @@ Project path:
 
 | File | Size | Frame | Texture frames | Runtime strip | Layout | Scene usage |
 |---|---:|---:|---:|---|---|
-| `animated_cat.png` | `576x16` | `16x16` | 36 | frames `0..35` | Horizontal strip | Cat at lower-left corner |
+| `animated_cat.png` | `576x16` | `48x16` | 12 | frames `0..11` | Horizontal strip | Cat at lower-left corner |
 | `animated_coffee.png` | `96x32` | `16x16` | 12 | frames `0..5` only | Multi-row grid | Cup/coffee on counter and recipe icon |
 | `animated_candle.png` | `48x32` | `16x16` | 6 | frames `0..2` only | Multi-row grid | Candle on counter |
 | `animated_kitchen_pan_with_omelette.png` | `256x32` | `16x16` | 32 | frames `0..15` only | Multi-row grid | Hot food/pan on counter and recipe icon |
@@ -170,6 +155,7 @@ The scene helper `_add_animated_prop()` now accepts `frame_size`, `frame_count`,
 - `48x16` -> 3 frames of `16x16`.
 - `64x16` -> 4 frames of `16x16`.
 - `96x16` -> 6 frames of `16x16`.
+- `576x16` cat strip -> 12 frames of `48x16`.
 - Multi-row grids where width/height are divisible by the configured frame size.
 
 ## Runtime Scale / Nodes
@@ -182,7 +168,7 @@ Runtime script: `res://scripts/game/night_cafe_game.gd`
 |---|---|---|---|---:|
 | Player | `CharacterSpriteController` | `Chef_Alex_idle_16x16.png` / `Chef_Alex_16x16.png` | `16x32` | `3x` |
 | Customers | `CharacterSpriteController` | mapped in `data/characters.json` | `16x32` | `3x` |
-| Cat lower-left | `_add_animated_prop` | `animated_cat.png` | `16x16`, 36 frames | `3x` |
+| Cat lower-left | `_add_animated_prop` | `animated_cat.png` | `48x16`, 12 frames | `3x` |
 | Coffee/cup | `_add_animated_prop` / `_asset_texture_rect` | `animated_coffee.png` | `16x16`, runtime frames `0..5` | `3x` scene, `5x/3x` UI |
 | Candle | `_add_animated_prop` | `animated_candle.png` | `16x16`, runtime frames `0..2` | `3x` |
 | Pan/hot food | `_add_animated_prop` / `_asset_texture_rect` | `animated_kitchen_pan_with_omelette.png` | `16x16`, runtime frames `0..15` | `3x` scene, `5x/3x` UI |
@@ -217,7 +203,7 @@ This prevents customers from keeping `walk_left`, `walk_right`, or `idle_left` a
 
 ## Fixed Slicing / Scale Issues
 
-- Cat previously used `animated_cat_32x32.png` from the 32px folder. It now uses `animated_cat.png` from the 16px LimeZu folder, sliced as 36 frames of `16x16`, scale `3x`.
+- Cat previously used `animated_cat_32x32.png` from the 32px folder. It now uses `animated_cat.png` from the 16px LimeZu folder, sliced as 12 frames of `48x16`, scale `3x`.
 - Coffee/candle/pan/sink/toaster previously used 32px animated object paths. They now use 16px LimeZu files and grid-slice `16x16`.
 - Coffee/candle/pan previously risked animating across the whole multi-row atlas. Runtime now uses only the first-row strip for each object.
 - `_add_animated_prop()` previously assumed a 32px horizontal strip. It now reads actual texture width/height, frame size, frame count, and optional start frame.

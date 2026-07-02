@@ -5,7 +5,6 @@ const CHARACTER_DATA_PATH := "res://data/characters.json"
 const SAVE_PATH := "user://night_cafe_demo_save.json"
 const AssetCatalog := preload("res://scripts/core/asset_catalog.gd")
 const CharacterSpriteController := preload("res://scripts/visual/character_sprite_controller.gd")
-const GifDecorationLoader := preload("res://scripts/visual/gif_decoration_loader.gd")
 const SCENE_WIDTH := 1280.0
 const SCENE_HEIGHT := 410.0
 
@@ -588,7 +587,7 @@ func _render_cafe_scene(mode := "idle", customer_id := "", recipe_id := "", resu
 
 	_add_counter_front_overlay()
 	_add_table_front_overlays()
-	_add_gif_decoration(AssetCatalog.LIMEZU_ANIMATED_16_GIF_DIR + "animated_cat.gif", Vector2(110, 390), 3.0, Color("#ffe8c2"))
+	_add_animated_prop(AssetCatalog.LIMEZU_ANIMATED_16_DIR + "animated_cat.png", Vector2(110, 390), 12, Vector2i(48, 16), 3.0, 4.0, Color("#ffe8c2"))
 	_add_steam(Vector2(548, 180))
 	_add_steam(Vector2(705, 182))
 	_add_scene_status(mode, customer_id, recipe_id, result)
@@ -662,10 +661,10 @@ func _add_counter_and_props() -> void:
 	_add_scene_rect(Vector2(284, 182), Vector2(712, 74), Color("#3a2418"), 20)
 	_add_scene_rect(Vector2(304, 194), Vector2(672, 10), Color("#8f6a45"), 20)
 	_add_scene_rect(Vector2(508, 112), Vector2(250, 34), Color("#332016"))
-	_add_gif_decoration(AssetCatalog.LIMEZU_ANIMATED_16_GIF_DIR + "animated_coffee.gif", Vector2(552, 198), 3.0, Color("#fff0d0"))
-	_add_gif_decoration(AssetCatalog.LIMEZU_ANIMATED_16_GIF_DIR + "animated_kitchen_pan_with_omelette_16x16.gif", Vector2(712, 198), 3.0, Color("#fff0d0"))
+	_add_animated_prop(AssetCatalog.LIMEZU_ANIMATED_16_DIR + "animated_coffee.png", Vector2(552, 198), 6, Vector2i(16, 16), 3.0, 4.0, Color("#fff0d0"))
+	_add_animated_prop(AssetCatalog.LIMEZU_ANIMATED_16_DIR + "animated_kitchen_pan_with_omelette.png", Vector2(712, 198), 16, Vector2i(16, 16), 3.0, 5.0, Color("#fff0d0"))
 	_add_animated_prop(AssetCatalog.LIMEZU_ANIMATED_16_DIR + "animated_kitchen_sink_1.png", Vector2(792, 198), 6, Vector2i(16, 16), 3.0, 3.0, Color("#fff0d0"))
-	_add_gif_decoration(AssetCatalog.LIMEZU_ANIMATED_16_GIF_DIR + "animated_candle.gif", Vector2(436, 198), 3.0, Color("#ffdca2"))
+	_add_animated_prop(AssetCatalog.LIMEZU_ANIMATED_16_DIR + "animated_candle.png", Vector2(436, 198), 3, Vector2i(16, 16), 3.0, 5.0, Color("#ffdca2"))
 	_add_scene_rect(Vector2(894, 142), Vector2(38, 52), Color("#24412b"))
 	_add_scene_rect(Vector2(906, 118), Vector2(14, 26), Color("#4c7a47"))
 	_add_scene_rect(Vector2(930, 130), Vector2(14, 18), Color("#5c8a52"))
@@ -891,21 +890,6 @@ func _add_animated_prop(path: String, foot_position: Vector2, frame_count := -1,
 	prop.animation = "loop"
 	prop.centered = true
 	prop.offset = Vector2(0, -float(frame_size.y) * 0.5)
-	prop.position = foot_position.floor()
-	prop.scale = Vector2(pixel_scale, pixel_scale)
-	prop.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	prop.modulate = tint
-	prop.z_index = int(foot_position.y)
-	scene_layer.add_child(prop)
-	prop.play()
-	return prop
-
-func _add_gif_decoration(gif_path: String, foot_position: Vector2, pixel_scale := 3.0, tint := Color.WHITE) -> AnimatedSprite2D:
-	var prop := AnimatedSprite2D.new()
-	prop.sprite_frames = GifDecorationLoader.create_sprite_frames(gif_path)
-	prop.animation = "loop"
-	prop.centered = true
-	prop.offset = Vector2(0, -float(AssetCatalog.TILE_SIZE) * 0.5)
 	prop.position = foot_position.floor()
 	prop.scale = Vector2(pixel_scale, pixel_scale)
 	prop.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
