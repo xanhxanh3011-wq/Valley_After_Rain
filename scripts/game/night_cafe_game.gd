@@ -2,6 +2,7 @@ extends Control
 
 const DATA_PATH := "res://data/demo_content.json"
 const CHARACTER_DATA_PATH := "res://data/characters.json"
+const SPRITE_SLICE_PRESET_PATH := "res://data/sprite_slice_presets.json"
 const SAVE_PATH := "user://night_cafe_demo_save.json"
 const AssetCatalog := preload("res://scripts/core/asset_catalog.gd")
 const CharacterSpriteController := preload("res://scripts/visual/character_sprite_controller.gd")
@@ -10,6 +11,7 @@ const SCENE_HEIGHT := 410.0
 
 var data: Dictionary
 var character_data: Dictionary
+var sprite_slice_presets: Dictionary
 var state: Dictionary
 var current_night_index := 0
 var current_visit_index := 0
@@ -40,6 +42,7 @@ var top_bar: HBoxContainer
 func _ready() -> void:
 	data = _load_json(DATA_PATH)
 	character_data = _load_json(CHARACTER_DATA_PATH)
+	sprite_slice_presets = _load_json(SPRITE_SLICE_PRESET_PATH)
 	_reset_state()
 	_build_shell()
 	_show_main_menu()
@@ -852,21 +855,39 @@ func _add_scene_sprite(path: String, pos: Vector2, sprite_size: Vector2, tint :=
 
 func _add_animated_prop(path: String, foot_position: Vector2, frame_count := -1, frame_size := Vector2i(16, 16), pixel_scale := 3.0, speed := 4.0, tint := Color.WHITE, start_frame := 0) -> AnimatedSprite2D:
 	var texture := AssetCatalog.load_texture(path)
+	var animation_name := "loop"
+	var animation_loop := true
+	var uses_saved_preset := false
+	var preset: Dictionary = sprite_slice_presets.get(path, {})
+	if not preset.is_empty():
+		uses_saved_preset = true
+		frame_size = Vector2i(
+			max(1, int(preset.get("frame_width", frame_size.x))),
+			max(1, int(preset.get("frame_height", frame_size.y)))
+		)
+		start_frame = max(0, int(preset.get("start_frame", start_frame)))
+		frame_count = int(preset.get("slice_count", frame_count))
+		speed = max(1.0, float(preset.get("fps", speed)))
+		animation_name = str(preset.get("animation_name", animation_name)).strip_edges()
+		if animation_name == "":
+			animation_name = "loop"
+		animation_loop = bool(preset.get("loop", true))
 	var prop := AnimatedSprite2D.new()
 	var frames := SpriteFrames.new()
-	frames.add_animation("loop")
-	frames.set_animation_loop("loop", true)
-	frames.set_animation_speed("loop", speed)
+	frames.add_animation(animation_name)
+	frames.set_animation_loop(animation_name, animation_loop)
+	frames.set_animation_speed(animation_name, speed)
 	var columns: int = max(1, int(texture.get_width() / frame_size.x))
 	var rows: int = max(1, int(texture.get_height() / frame_size.y))
 	var total_frames: int = columns * rows
 	var safe_start_frame: int = clampi(start_frame, 0, max(0, total_frames - 1))
 	var available_frames: int = max(1, total_frames - safe_start_frame)
 	var frames_to_add: int
-	if frame_count < 0 and rows > 1:
+	if frame_count <= 0 and rows > 1:
 		frames_to_add = min(columns, available_frames)
-		push_warning("Animated prop uses first row only because no frame_count was set: %s" % path)
-	elif frame_count < 0:
+		if not uses_saved_preset:
+			push_warning("Animated prop uses first row only because no frame_count was set: %s" % path)
+	elif frame_count <= 0:
 		frames_to_add = available_frames
 	else:
 		frames_to_add = clampi(frame_count, 1, available_frames)
@@ -885,9 +906,9 @@ func _add_animated_prop(path: String, foot_position: Vector2, frame_count := -1,
 		var atlas := AtlasTexture.new()
 		atlas.atlas = texture
 		atlas.region = Rect2(column * frame_size.x, row * frame_size.y, frame_size.x, frame_size.y)
-		frames.add_frame("loop", atlas)
+		frames.add_frame(animation_name, atlas)
 	prop.sprite_frames = frames
-	prop.animation = "loop"
+	prop.animation = animation_name
 	prop.centered = true
 	prop.offset = Vector2(0, -float(frame_size.y) * 0.5)
 	prop.position = foot_position.floor()
