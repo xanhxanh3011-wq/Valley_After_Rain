@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/player_controller.gd" id="1_player_script"]
-[ext_resource type="Texture2D" path="res://assets/art/modern_interiors/characters_32x32/Adam_32x32.png" id="2_adam"]
+[ext_resource type="Texture2D" path="res://assets/limezu/characters_free/16x16/Adam_idle_16x16.png" id="2_adam"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_player"]
 radius = 8.0
@@ -14,7 +14,7 @@ script = ExtResource("1_player_script")
 texture = ExtResource("2_adam")
 centered = true
 region_enabled = true
-region_rect = Rect2(0, 0, 32, 32)
+region_rect = Rect2(32, 0, 16, 32)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(0, 6)

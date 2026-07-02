@@ -171,25 +171,6 @@ func _build_rain() -> void:
 		scene_layer.add_child(line)
 		rain_lines.append(line)
 
-func _add_decor_sprites() -> void:
-	var atlas := TextureRect.new()
-	atlas.texture = load(AssetCatalog.MODERN_INTERIOR_GENERIC)
-	atlas.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	atlas.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT
-	atlas.modulate = Color(1, 1, 1, 0.16)
-	atlas.position = Vector2(900, 80)
-	atlas.size = Vector2(260, 520)
-	add_child(atlas)
-
-	var ui := TextureRect.new()
-	ui.texture = load(AssetCatalog.MODERN_UI)
-	ui.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	ui.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT
-	ui.modulate = Color(1, 0.87, 0.62, 0.14)
-	ui.position = Vector2(42, 480)
-	ui.size = Vector2(180, 180)
-	add_child(ui)
-
 func _panel_style(fill: Color, border: Color, radius := 18) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = fill
@@ -365,7 +346,7 @@ func _show_cooking_panel(recipe_id: String) -> void:
 	row.add_theme_constant_override("separation", 14)
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	content.add_child(row)
-	row.add_child(_asset_texture_rect(_recipe_sprite_path(recipe), Vector2(88, 88)))
+	row.add_child(_asset_texture_rect(_recipe_sprite_path(recipe), Vector2(80, 80)))
 	var preview := VBoxContainer.new()
 	preview.add_theme_constant_override("separation", 6)
 	preview.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -620,7 +601,7 @@ func _render_cafe_scene(mode := "idle", customer_id := "", recipe_id := "", resu
 
 	_add_counter_front_overlay()
 	_add_table_front_overlays()
-	_add_animated_prop(AssetCatalog.MODERN_ANIMATED_DIR + "animated_cat_32x32.png", Vector2(110, 390), 12, 2.0, 4.0, Color("#ffe8c2"))
+	_add_animated_prop(AssetCatalog.LIMEZU_ANIMATED_16_DIR + "animated_cat.png", Vector2(110, 390), -1, Vector2i(16, 16), 3.0, 4.0, Color("#ffe8c2"))
 	_add_steam(Vector2(548, 180))
 	_add_steam(Vector2(705, 182))
 	_add_scene_status(mode, customer_id, recipe_id, result)
@@ -694,10 +675,10 @@ func _add_counter_and_props() -> void:
 	_add_scene_rect(Vector2(284, 182), Vector2(712, 74), Color("#3a2418"), 20)
 	_add_scene_rect(Vector2(304, 194), Vector2(672, 10), Color("#8f6a45"), 20)
 	_add_scene_rect(Vector2(508, 112), Vector2(250, 34), Color("#332016"))
-	_add_animated_prop(AssetCatalog.MODERN_ANIMATED_DIR + "animated_coffee_32x32.png", Vector2(552, 198), 6, 2.0, 4.0, Color("#fff0d0"))
-	_add_animated_prop(AssetCatalog.MODERN_ANIMATED_DIR + "animated_kitchen_pan_with_omelette_32x32.png", Vector2(712, 198), 8, 2.0, 5.0, Color("#fff0d0"))
-	_add_scene_sprite(AssetCatalog.MODERN_ANIMATED_DIR + "animated_sink_32x32.png", Vector2(760, 144), Vector2(64, 64), Color("#fff0d0"))
-	_add_animated_prop(AssetCatalog.MODERN_ANIMATED_DIR + "animated_candle_32x32.png", Vector2(436, 198), 3, 2.0, 5.0, Color("#ffdca2"))
+	_add_animated_prop(AssetCatalog.LIMEZU_ANIMATED_16_DIR + "animated_coffee.png", Vector2(552, 198), -1, Vector2i(16, 16), 3.0, 4.0, Color("#fff0d0"))
+	_add_animated_prop(AssetCatalog.LIMEZU_ANIMATED_16_DIR + "animated_kitchen_pan_with_omelette.png", Vector2(712, 198), 12, Vector2i(16, 16), 3.0, 5.0, Color("#fff0d0"))
+	_add_animated_prop(AssetCatalog.LIMEZU_ANIMATED_16_DIR + "animated_kitchen_sink_1.png", Vector2(792, 198), -1, Vector2i(16, 16), 3.0, 3.0, Color("#fff0d0"))
+	_add_animated_prop(AssetCatalog.LIMEZU_ANIMATED_16_DIR + "animated_candle.png", Vector2(436, 198), -1, Vector2i(16, 16), 3.0, 5.0, Color("#ffdca2"))
 	_add_scene_rect(Vector2(894, 142), Vector2(38, 52), Color("#24412b"))
 	_add_scene_rect(Vector2(906, 118), Vector2(14, 26), Color("#4c7a47"))
 	_add_scene_rect(Vector2(930, 130), Vector2(14, 18), Color("#5c8a52"))
@@ -851,7 +832,7 @@ func _add_scene_rect(pos: Vector2, rect_size: Vector2, color: Color, z := 0) -> 
 
 func _add_scene_sprite(path: String, pos: Vector2, sprite_size: Vector2, tint := Color.WHITE) -> TextureRect:
 	var sprite := TextureRect.new()
-	sprite.texture = _atlas_texture(path, Rect2(0, 0, 32, 32))
+	sprite.texture = _atlas_texture(path, Rect2(0, 0, AssetCatalog.TILE_SIZE, AssetCatalog.TILE_SIZE))
 	sprite.position = pos
 	sprite.size = sprite_size
 	sprite.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -861,22 +842,28 @@ func _add_scene_sprite(path: String, pos: Vector2, sprite_size: Vector2, tint :=
 	scene_layer.add_child(sprite)
 	return sprite
 
-func _add_animated_prop(path: String, foot_position: Vector2, frame_count: int, pixel_scale := 2.0, speed := 4.0, tint := Color.WHITE) -> AnimatedSprite2D:
+func _add_animated_prop(path: String, foot_position: Vector2, frame_count := -1, frame_size := Vector2i(16, 16), pixel_scale := 3.0, speed := 4.0, tint := Color.WHITE) -> AnimatedSprite2D:
 	var texture := AssetCatalog.load_texture(path)
 	var prop := AnimatedSprite2D.new()
 	var frames := SpriteFrames.new()
 	frames.add_animation("loop")
 	frames.set_animation_loop("loop", true)
 	frames.set_animation_speed("loop", speed)
-	for frame_index in range(frame_count):
+	var columns: int = max(1, int(texture.get_width() / frame_size.x))
+	var rows: int = max(1, int(texture.get_height() / frame_size.y))
+	var total_frames: int = columns * rows
+	var frames_to_add: int = total_frames if frame_count < 0 else min(frame_count, total_frames)
+	for frame_index in range(frames_to_add):
+		var column := frame_index % columns
+		var row := int(frame_index / columns)
 		var atlas := AtlasTexture.new()
 		atlas.atlas = texture
-		atlas.region = Rect2(float(frame_index * AssetCatalog.TILE_SIZE), 0, AssetCatalog.TILE_SIZE, AssetCatalog.TILE_SIZE)
+		atlas.region = Rect2(column * frame_size.x, row * frame_size.y, frame_size.x, frame_size.y)
 		frames.add_frame("loop", atlas)
 	prop.sprite_frames = frames
 	prop.animation = "loop"
 	prop.centered = true
-	prop.offset = Vector2(0, -AssetCatalog.TILE_SIZE * 0.5)
+	prop.offset = Vector2(0, -float(frame_size.y) * 0.5)
 	prop.position = foot_position.floor()
 	prop.scale = Vector2(pixel_scale, pixel_scale)
 	prop.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
@@ -950,14 +937,14 @@ func _add_visual_stage(customer_id := "", recipe_id := "", result := "") -> void
 	props.add_theme_constant_override("h_separation", 12)
 	props.add_theme_constant_override("v_separation", 8)
 	room_margin.add_child(props)
-	props.add_child(_asset_texture_rect(AssetCatalog.MODERN_ANIMATED_DIR + "animated_candle_32x32.png", Vector2(54, 54)))
-	props.add_child(_asset_texture_rect(AssetCatalog.MODERN_ANIMATED_DIR + "animated_coffee_32x32.png", Vector2(54, 54)))
-	props.add_child(_asset_texture_rect(AssetCatalog.MODERN_ANIMATED_DIR + "animated_cat_32x32.png", Vector2(54, 54)))
-	props.add_child(_asset_texture_rect(AssetCatalog.MODERN_ANIMATED_DIR + "animated_cuckoo_clock_32x32.png", Vector2(54, 54)))
-	props.add_child(_asset_texture_rect(AssetCatalog.MODERN_ANIMATED_DIR + "animated_kitchen_pan_with_omelette_32x32.png", Vector2(54, 54)))
-	props.add_child(_asset_texture_rect(AssetCatalog.MODERN_ANIMATED_DIR + "animated_kitchen_oven_2cookers_32x32.png", Vector2(54, 54)))
-	props.add_child(_asset_texture_rect(AssetCatalog.MODERN_ANIMATED_DIR + "animated_sink_32x32.png", Vector2(54, 54)))
-	props.add_child(_asset_texture_rect(AssetCatalog.MODERN_ANIMATED_DIR + "animated_toaster_32x32.png", Vector2(54, 54)))
+	props.add_child(_asset_texture_rect(AssetCatalog.LIMEZU_ANIMATED_16_DIR + "animated_candle.png", Vector2(48, 48)))
+	props.add_child(_asset_texture_rect(AssetCatalog.LIMEZU_ANIMATED_16_DIR + "animated_coffee.png", Vector2(48, 48)))
+	props.add_child(_asset_texture_rect(AssetCatalog.LIMEZU_ANIMATED_16_DIR + "animated_cat.png", Vector2(48, 48)))
+	props.add_child(_asset_texture_rect(AssetCatalog.LIMEZU_ANIMATED_16_DIR + "animated_cuckoo_clock.png", Vector2(48, 48)))
+	props.add_child(_asset_texture_rect(AssetCatalog.LIMEZU_ANIMATED_16_DIR + "animated_kitchen_pan_with_omelette.png", Vector2(48, 48)))
+	props.add_child(_asset_texture_rect(AssetCatalog.LIMEZU_ANIMATED_16_DIR + "animated_kitchen_sink_1.png", Vector2(48, 48)))
+	props.add_child(_asset_texture_rect(AssetCatalog.LIMEZU_ANIMATED_16_DIR + "animated_toaster.png", Vector2(48, 48)))
+	props.add_child(_asset_texture_rect(AssetCatalog.LIMEZU_ANIMATED_16_DIR + "animated_candle.png", Vector2(48, 48)))
 
 	var details := VBoxContainer.new()
 	details.add_theme_constant_override("separation", 6)
@@ -987,7 +974,7 @@ func _add_visual_stage(customer_id := "", recipe_id := "", result := "") -> void
 		var recipe_row := HBoxContainer.new()
 		recipe_row.add_theme_constant_override("separation", 10)
 		details.add_child(recipe_row)
-		recipe_row.add_child(_asset_texture_rect(_recipe_sprite_path(recipe), Vector2(54, 54)))
+		recipe_row.add_child(_asset_texture_rect(_recipe_sprite_path(recipe), Vector2(48, 48)))
 
 		var recipe_text := VBoxContainer.new()
 		recipe_text.add_theme_constant_override("separation", 3)
@@ -999,7 +986,7 @@ func _add_visual_stage(customer_id := "", recipe_id := "", result := "") -> void
 		var keepsakes: Array = state.get("keepsakes", [])
 		details.add_child(_stage_label("Vật kỷ niệm mới nhất: %s" % str(keepsakes.back()), Color("#d6b98a"), 13))
 
-func _asset_texture_rect(path: String, target_size: Vector2, region := Rect2(0, 0, 32, 32), use_region := true) -> TextureRect:
+func _asset_texture_rect(path: String, target_size: Vector2, region := Rect2(0, 0, 16, 16), use_region := true) -> TextureRect:
 	var rect := TextureRect.new()
 	rect.custom_minimum_size = target_size
 	rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -1029,34 +1016,34 @@ func _stage_label(text: String, color: Color, font_size := 14) -> Label:
 func _customer_sprite_path(customer_id: String) -> String:
 	match customer_id:
 		"tai_xe":
-			return AssetCatalog.MODERN_CHARACTER_DIR + "Adam_phone_32x32.png"
+			return AssetCatalog.LIMEZU_CHARACTER_16_DIR + "Adam_idle_16x16.png"
 		"van_phong":
-			return AssetCatalog.MODERN_CHARACTER_DIR + "Amelia_reading_32x32.png"
+			return AssetCatalog.LIMEZU_CHARACTER_16_DIR + "Amelia_idle_16x16.png"
 		"bao_ve":
-			return AssetCatalog.MODERN_CHARACTER_DIR + "Old_man_Josh_32x32.png"
+			return AssetCatalog.LIMEZU_CHARACTER_16_DIR + "Old_man_Josh_idle_16x16.png"
 		"sinh_vien":
-			return AssetCatalog.MODERN_CHARACTER_DIR + "Samuel_phone_32x32.png"
+			return AssetCatalog.LIMEZU_CHARACTER_16_DIR + "Samuel_idle_16x16.png"
 		"ban_hoa":
-			return AssetCatalog.MODERN_CHARACTER_DIR + "Old_woman_Jenny_32x32.png"
+			return AssetCatalog.LIMEZU_CHARACTER_16_DIR + "Old_woman_Jenny_idle_16x16.png"
 		"cap_doi":
-			return AssetCatalog.MODERN_CHARACTER_DIR + "Lucy_32x32.png"
+			return AssetCatalog.LIMEZU_CHARACTER_16_DIR + "Lucy_idle_16x16.png"
 		"y_ta":
-			return AssetCatalog.MODERN_CHARACTER_DIR + "Cleaner_girl_32x32.png"
+			return AssetCatalog.LIMEZU_CHARACTER_16_DIR + "Cleaner_girl_idle_16x16.png"
 		"dev":
-			return AssetCatalog.MODERN_CHARACTER_DIR + "Rob_phone_32x32.png"
+			return AssetCatalog.LIMEZU_CHARACTER_16_DIR + "Rob_idle_16x16.png"
 		_:
-			return AssetCatalog.MODERN_PLAYER_ADAM
+			return AssetCatalog.LIMEZU_CHARACTER_16_DIR + "Chef_Alex_idle_16x16.png"
 
 func _recipe_sprite_path(recipe: Dictionary) -> String:
 	var name := str(recipe.get("name", "")).to_lower()
 	var base := str(recipe.get("base", "")).to_lower()
 	if base.contains("cà phê") or name.contains("cà phê") or name.contains("bạc xỉu"):
-		return AssetCatalog.MODERN_ANIMATED_DIR + "animated_coffee_32x32.png"
+		return AssetCatalog.LIMEZU_ANIMATED_16_DIR + "animated_coffee.png"
 	if name.contains("trà") or name.contains("sữa") or name.contains("cacao"):
-		return AssetCatalog.MODERN_ANIMATED_DIR + "animated_coffee_32x32.png"
+		return AssetCatalog.LIMEZU_ANIMATED_16_DIR + "animated_coffee.png"
 	if name.contains("bánh mì"):
-		return AssetCatalog.MODERN_ANIMATED_DIR + "animated_toaster_32x32.png"
-	return AssetCatalog.MODERN_ANIMATED_DIR + "animated_kitchen_pan_with_omelette_32x32.png"
+		return AssetCatalog.LIMEZU_ANIMATED_16_DIR + "animated_toaster.png"
+	return AssetCatalog.LIMEZU_ANIMATED_16_DIR + "animated_kitchen_pan_with_omelette.png"
 
 func _recipe_button_text(recipe: Dictionary) -> String:
 	var warmth := int(recipe.get("warmth_level", 0))

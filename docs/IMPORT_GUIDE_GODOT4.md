@@ -6,45 +6,49 @@ Project default:
 
 - `textures/canvas_textures/default_texture_filter=0`
 
-This keeps pixel art sharp.
+This keeps pixel art sharp. Imported PNGs should keep:
+
+- Filter nearest.
+- Mipmaps off.
+- Repeat disabled.
+- Lossless compression for pixel art.
 
 ## Tile Size
 
-Default working grid:
+Default runtime grid:
 
-- `32x32`
+- `16x16`
 
-Use `16x16` only if the game needs dense maps and smaller characters. Use `48x48` only if the game needs larger/readable sprites with less scaling.
+Do not assume every character is `16x32`. Read the real sheet size and config the frame size per asset.
 
-## TileSet Work
+## Frame Rules
 
-Godot 4 TileSets should be rebuilt in-editor.
+Horizontal 16px-high strips:
 
-Good source files:
+- `32x16` -> 2 frames of `16x16`.
+- `48x16` -> 3 frames of `16x16`.
+- `64x16` -> 4 frames of `16x16`.
+- `96x16` -> 6 frames of `16x16`.
 
-- `res://assets/art/modern_interiors/interiors_32x32/Theme_Sorter_32x32/*.png`
-- `res://assets/art/super_retro_world/exterior/atlas_32x.png`
-- `res://assets/art/super_retro_world/interior/atlas_32x.png`
+Character idle sheets currently used:
 
-Do not rely on the Super Retro World Godot sample directly. It is Godot 3-era TileMap/TileSet data.
+- `{name}_idle_16x16.png`
+- `64x32`
+- 4 frames of `16x32`
 
-## Animation Work
+Full character sheets:
 
-Prefer PNG spritesheets.
+- `{name}_16x16.png`
+- Use `frame_width/frame_height` from `data/characters.json`.
+- Current main customers use `16x32` frames.
 
-Good source files:
+## Runtime Source Files
 
-- `res://assets/art/modern_interiors/characters_32x32/*.png`
-- `res://assets/art/modern_interiors/animated_objects_32x32/*.png`
-- `res://assets/art/super_retro_world/animations/*.png`
+- Characters: `res://assets/limezu/characters_free/16x16/*.png`
+- Animated objects: `res://assets/limezu/animated_objects/16x16/spritesheets/*.png`
 
-GIFs are kept only where no PNG equivalent was copied, mostly as references.
+## Godot 4 Work
 
-## Transparency
-
-Most copied assets use alpha transparency.
-
-Known caution:
-
-- Some Super Retro atlas/RPG Maker source files use magenta key backgrounds in the original pack.
-- The copied atlas files should still be checked visually after Godot import.
+- Build `SpriteFrames` from `AtlasTexture` regions in code when slicing differs per asset.
+- Avoid `hframes/vframes` unless the whole sheet is uniform and documented.
+- Keep node scale integer: `2x`, `3x`, etc.

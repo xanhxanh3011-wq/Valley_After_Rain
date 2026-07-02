@@ -65,6 +65,8 @@ Full sheets:
 - The frame size is still `16x32`.
 - The loader validates that full sheet width/height are divisible by `16x32`.
 
+Important: `16x32` is not a global character default. It is the configured frame size for the currently mapped LimeZu customer sheets. The controller reads `frame_width` and `frame_height` from `data/characters.json`.
+
 Walk slicing currently used:
 
 - `walk_row = 1`
@@ -112,11 +114,71 @@ Scene-level customer walk-in state currently uses:
 
 When the customer reaches the seat, the scene calls `sit_down()`, zeroes velocity, sets `flip_h = false`, and keeps the character on `idle_down`.
 
+## Animated Object Audit
+
+Runtime prop files are exact copies from:
+
+`D:\GameMaking\game assets\Modern_Interiors\3_Animated_objects\16x16\spritesheets`
+
+Project path:
+
+`res://assets/limezu/animated_objects/16x16/spritesheets/`
+
+| File | Size | Frame | Frames | Layout | Scene usage |
+|---|---:|---:|---:|---|---|
+| `animated_cat.png` | `576x16` | `16x16` | 36 | Horizontal strip | Cat at lower-left corner |
+| `animated_coffee.png` | `96x32` | `16x16` | 12 | Multi-row grid | Cup/coffee on counter and recipe icon |
+| `animated_candle.png` | `48x32` | `16x16` | 6 | Multi-row grid | Candle on counter |
+| `animated_kitchen_pan_with_omelette.png` | `256x32` | `16x16` | 32 | Multi-row grid | Hot food/pan on counter and recipe icon |
+| `animated_kitchen_sink_1.png` | `96x16` | `16x16` | 6 | Horizontal strip | Sink/counter prop |
+| `animated_toaster.png` | `176x32` | `16x16` | 22 | Multi-row grid | Bread/recipe icon |
+| `animated_cuckoo_clock.png` | `160x32` | `16x16` | 20 | Multi-row grid | Available for clock prop/UI stage |
+
+The scene helper `_add_animated_prop()` now accepts `frame_size` and can auto-compute frame count from the real texture size. It supports:
+
+- `32x16` -> 2 frames of `16x16`.
+- `48x16` -> 3 frames of `16x16`.
+- `64x16` -> 4 frames of `16x16`.
+- `96x16` -> 6 frames of `16x16`.
+- Multi-row grids where width/height are divisible by the configured frame size.
+
+## Runtime Scale / Nodes
+
+Main scene: `res://scenes/main/NightCafeGame.tscn`
+
+Runtime script: `res://scripts/game/night_cafe_game.gd`
+
+| Runtime element | Node/helper | Asset | Frame | Scale |
+|---|---|---|---|---:|
+| Player | `CharacterSpriteController` | `Chef_Alex_idle_16x16.png` / `Chef_Alex_16x16.png` | `16x32` | `3x` |
+| Customers | `CharacterSpriteController` | mapped in `data/characters.json` | `16x32` | `3x` |
+| Cat lower-left | `_add_animated_prop` | `animated_cat.png` | `16x16`, 36 frames | `3x` |
+| Coffee/cup | `_add_animated_prop` / `_asset_texture_rect` | `animated_coffee.png` | `16x16`, 12 frames | `3x` scene, `5x/3x` UI |
+| Candle | `_add_animated_prop` | `animated_candle.png` | `16x16`, 6 frames | `3x` |
+| Pan/hot food | `_add_animated_prop` / `_asset_texture_rect` | `animated_kitchen_pan_with_omelette.png` | `16x16` | `3x` scene, `5x/3x` UI |
+| Sink | `_add_animated_prop` | `animated_kitchen_sink_1.png` | `16x16`, 6 frames | `3x` |
+| Toaster/recipe icon | `_asset_texture_rect` | `animated_toaster.png` | `16x16` | `5x/3x` UI |
+
+No runtime node now uses the old `animated_*_32x32.png` paths.
+
+## Fixed Slicing / Scale Issues
+
+- Cat previously used `animated_cat_32x32.png` from the 32px folder. It now uses `animated_cat.png` from the 16px LimeZu folder, sliced as 36 frames of `16x16`, scale `3x`.
+- Coffee/candle/pan/sink/toaster previously used 32px animated object paths. They now use 16px LimeZu files and grid-slice `16x16`.
+- `_add_animated_prop()` previously assumed a 32px horizontal strip. It now reads actual texture width/height and frame size.
+- `_add_scene_sprite()` default region now uses `AssetCatalog.TILE_SIZE`, currently `16`.
+- `AssetCatalog.TILE_SIZE` is now `16`.
+- UI recipe icon sizes were changed to integer multiples of `16` (`80px` or `48px`) to avoid fractional scaling.
+- Old generated/blocky character assets were removed.
+
 ## Previous Bug
 
-The earlier scene hardcoded `Rect2(0, 0, 32, 32)` and later used generated `32x48` character sheets. Both are incorrect for this requirement.
+The earlier scene hardcoded `Rect2(0, 0, 32, 32)` and later used generated 32px-height placeholder character sheets. Both are incorrect for this requirement.
 
-The current pipeline uses LimeZu `16x32` character frames only.
+The current pipeline uses per-asset frame sizes:
+
+- Current mapped LimeZu characters: `16x32`.
+- Runtime animated props/animal/fx: `16x16`.
 
 ## Known Limitations
 

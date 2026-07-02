@@ -10,7 +10,7 @@ const IDLE_FRAME_ORDER := {
 
 var character_id := ""
 var frame_width := 16
-var frame_height := 32
+var frame_height := 16
 var last_direction := "down"
 var state := "idle"
 var velocity := Vector2.ZERO
@@ -18,9 +18,7 @@ var velocity := Vector2.ZERO
 func configure(id: String, config: Dictionary, requested_animation := "") -> void:
 	character_id = id
 	frame_width = int(config.get("frame_width", 16))
-	frame_height = int(config.get("frame_height", 32))
-	if frame_width != 16 or frame_height != 32:
-		push_warning("LimeZu character %s expected 16x32 frames, got %sx%s" % [id, frame_width, frame_height])
+	frame_height = int(config.get("frame_height", 16))
 
 	sprite_frames = _create_sprite_frames(config)
 	centered = true

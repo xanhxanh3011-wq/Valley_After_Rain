@@ -22,11 +22,11 @@ func _add_player() -> void:
 	add_child(player)
 
 func _add_asset_wall() -> void:
-	_add_sample("Modern interiors 32x32", AssetCatalog.MODERN_INTERIOR_GENERIC, Vector2(64, 56), 0.5)
-	_add_sample("Super Retro exterior atlas", AssetCatalog.SUPER_RETRO_EXTERIOR, Vector2(520, 56), 1.0)
-	_add_sample("Super Retro interior atlas", AssetCatalog.SUPER_RETRO_INTERIOR, Vector2(520, 360), 1.0)
+	_add_sample("LimeZu Adam idle 16x32", AssetCatalog.LIMEZU_CHARACTER_16_DIR + "Adam_idle_16x16.png", Vector2(64, 56), 3.0)
+	_add_sample("LimeZu cat 16x16 strip", AssetCatalog.LIMEZU_ANIMATED_16_DIR + "animated_cat.png", Vector2(360, 56), 3.0)
+	_add_sample("LimeZu coffee 16x16", AssetCatalog.LIMEZU_ANIMATED_16_DIR + "animated_coffee.png", Vector2(640, 56), 3.0)
 	_add_sample("Shikashi icons", AssetCatalog.SHIKASHI_ICONS_TRANSPARENT, Vector2(900, 56), 0.5)
-	_add_sample("Modern UI", AssetCatalog.MODERN_UI, Vector2(900, 560), 1.0)
+	_add_sample("LimeZu candle 16x16", AssetCatalog.LIMEZU_ANIMATED_16_DIR + "animated_candle.png", Vector2(900, 560), 3.0)
 
 func _add_sample(title: String, texture_path: String, position: Vector2, scale_factor: float) -> void:
 	var label := Label.new()
