@@ -1,253 +1,360 @@
 # Đèn Hẻm Sau Mưa - Production Release Plan
 
+## 0. Vai Trò Và Phạm Vi
+
+Bạn là senior Godot 4.7 developer + game UI/UX designer. Hãy tự phân tích repo hiện tại của game `Đèn Hẻm Sau Mưa` và triển khai trực tiếp lên bản production release.
+
+Trọng tâm ban đầu:
+- Sửa `Recipe Book` và `Notebook` thành `open-book modal` đúng kiểu sách mở ở giữa màn hình.
+- Book phải nổi lên trên cafe scene, có dim background phía sau, và khóa input gameplay khi mở.
+- Tuyệt đối không render quyển sách như một widget bị nhét xuống bottom panel cũ.
+
 ## 1. Product Vision
 
-`Đèn Hẻm Sau Mưa` là game cozy narrative về một quán ăn/cafe nhỏ mở sau nửa đêm. Người chơi không giải cứu ai, không tối ưu doanh thu, không chạy deadline arcade. Người chơi tạo một không gian đủ ấm để khách ghé vào, gọi một món đúng lúc, và tự nói ra điều họ chưa biết nói với ai.
+`Đèn Hẻm Sau Mưa` là game cozy narrative về một quán ăn/quán cafe đêm ở thành phố Việt Nam hư cấu. Người chơi không cứu thế giới, không combat, không farm, không quản lý kinh doanh nặng. Trọng tâm là:
+- Mở quán lúc đêm muộn.
+- Nấu và pha món đúng lúc.
+- Lắng nghe khách kể chuyện.
+- Ghi nhớ chi tiết nhỏ.
+- Tạo một nơi trú ẩn tinh thần cho những người cô đơn trong thành phố.
 
-Release production cần giữ ba trụ cột:
+Release production phải giữ 3 trụ cột:
+- Quán nhỏ có linh hồn.
+- Món ăn/đồ uống có ý nghĩa cảm xúc.
+- Nhân vật nói chuyện như người thật, tự nhiên, ngập ngừng, đời thường.
 
-- Quán nhỏ có linh hồn: ánh đèn vàng, mưa đêm, đồ vật tích lũy ký ức.
-- Món ăn có ý nghĩa: công thức không chỉ là nguyên liệu mà là mood, thời tiết, ký ức.
-- Nhân vật giống người thật: không giảng đạo, không bi kịch hóa liên tục, không giải quyết hoàn hảo mọi đời sống.
+## 2. Production Scope
 
-## 2. Target Release Scope
+### 2.1 Core Release
+- Main menu, settings, save/load.
+- Cafe scene chính.
+- Recipe Book modal.
+- Notebook modal.
+- Dialogue flow đầy đủ.
+- Cooking/serving flow đầy đủ.
+- 5 đêm playable tối thiểu, nhưng kiến trúc phải mở rộng được.
+- Ít nhất 5 khách chính có arc rõ.
+- Ít nhất 3 khách vãng lai.
+- Ít nhất 1 memory dish moment chạm cảm xúc.
+- Demo ending / full ending / credits.
 
-### Demo Public 1.0
-
-- 5-7 đêm playable.
-- 5 khách chính, 3 khách vãng lai.
-- 15-20 công thức.
-- 6-10 công thức mở khóa.
-- 1 tuyến truyện hoàn chỉnh có khoảnh khắc món ký ức.
-- 2 tuyến truyện cliffhanger nhẹ.
-- Save/load ổn định.
-- Settings cơ bản.
-- Notebook/recipe book hoàn thiện UX.
-- Scene quán polish đủ để trailer/screenshot.
-
-### Early Access / Full Game
-
-- 20-30 đêm.
+### 2.2 Full Release Target
+- 20-30 đêm nội dung.
 - 8-10 khách chính.
 - 12-18 khách vãng lai.
 - 45-60 công thức.
 - 25-35 món ký ức.
-- 4 mùa/thời tiết đặc biệt.
-- Multiple endings theo ký ức quán, không theo điểm số cứng.
+- Nhiều đêm đặc biệt theo thời tiết, mùa, sự kiện thành phố.
+- Kết thúc theo hướng ký ức, không theo điểm số.
 
-## 3. Art Direction
+## 3. UI/UX Production Plan
 
-### Scene
+### 3.1 Book Modal Standard
+- `RecipeBookOverlay` là open-book modal ở giữa màn hình.
+- `NotebookOverlay` là open-book modal ở giữa màn hình.
+- Book chiếm khoảng 60-70% chiều rộng và 55-68% chiều cao ở `1280x720`.
+- Cafe scene phía sau vẫn thấy được qua dim overlay.
+- Bottom gameplay panel cũ bị ẩn, mờ, hoặc khóa input khi overlay đang mở.
+- Z-index của book overlay phải cao hơn toàn bộ scene và UI thường.
 
-- Pixel art 16x16 thống nhất.
-- Camera 16:9, integer scale, nearest filter.
-- Quán chia layer rõ: wall, floor, back props, counter_back, characters, counter_front, props_front, fx, UI.
-- Player sau quầy quay xuống khi chờ, khách ở quầy quay lên khi gọi món.
-- Khách ở bàn dùng seated/idle_down đúng ngữ cảnh, bàn chỉ che phần chân/thân dưới.
+### 3.2 Recipe Book Layout
+- Trang trái là danh sách món.
+- Trang phải là chi tiết món đang chọn.
+- Có nút `Nấu món này` và `Quay lại trò chuyện`.
+- Danh sách món lấy từ `demo_content.json`, không hardcode text giả.
+- Nếu món nhiều, danh sách phải dùng `ScrollContainer` nội bộ.
+- Không để list chồng lên art quyển sách.
+- Không để text tràn khỏi khung.
+- Không để một ký tự rơi xuống một dòng.
 
-### Asset Production Needs
+### 3.3 Notebook Layout
+- Notebook là quyển sổ mở lớn ở giữa màn hình.
+- Có tab:
+  - `Khách quen`
+  - `Công thức`
+  - `Kỷ vật`
+  - `Những đêm mưa`
+  - `Ghi chú quán`
+- Nội dung phải nằm gọn trong trang giấy.
+- Text dài phải wrap theo từ hoặc scroll nội bộ.
+- Notebook copy phải giống ghi chú của chủ quán, không giống debug UI.
 
-- Sprite khách chính: idle 4 hướng, walk trái/phải, seated/table pose nếu có thể.
-- Props animated chuẩn 16x16: mèo, nến, cà phê, hơi nước, mưa cửa sổ, đồng hồ, bếp/chảo.
-- Menu/recipe icons theo nhóm: coffee, tea, milk, porridge, noodles, rice, bread, soup.
-- Keepsake icons: ảnh cũ, hoa, note, vé xe, thẻ nhân viên, kẹp tóc, khăn tay.
-- Background variants: mưa nhẹ, mưa lớn, đêm khô, gần sáng.
+### 3.4 UI Content Rules
+- Mọi content trong book phải nằm trong `MarginContainer` + `VBoxContainer` + `HBoxContainer`.
+- Page padding:
+  - top `28-36px`
+  - left/right `24-32px`
+  - bottom `24-32px`
+- Recipe row min height `52-72px`.
+- Icon có width cố định.
+- Label phải co giãn.
+- Tag không được đè lên tên món.
+- Action button phải cách text block `16-24px`.
+- Không để horizontal overflow.
+- Không để title/label đè lên mép sách.
 
-### Art QA Rules
+### 3.5 UI Asset Requirements
+- Nếu repo chưa có asset quyển sách/sổ đúng style, tạo asset mới trong `res://assets/generated/ui/`.
+- Tối thiểu cần:
+  - `ui_recipe_book_open.png`
+  - `ui_notebook_open.png`
+  - `ui_tab_paper.png`
+  - `ui_note_sticky.png`
+  - `ui_button_wood.png`
+  - `ui_portrait_frame.png`
+- Không bake chữ vào PNG.
+- Mọi chữ phải là `Label` / `RichTextLabel` runtime để tiếng Việt có dấu đúng.
+- Pixel art phải nearest, không scale lẻ.
 
-- Không trộn 32x32 vào scene 16x16 trừ khi là object lớn ghép tile hợp lệ.
-- Không scale lẻ.
-- Không crop atlas.
-- Không animate cả atlas.
-- Mọi animated prop phải có preset trong `data/sprite_slice_presets.json`.
+## 4. Content Expansion Plan
 
-## 4. Narrative Plan
+### 4.1 Customers
+- Mỗi khách chính có:
+  - `name`
+  - `age_range`
+  - `job_context`
+  - `speaking_style`
+  - `usual_order`
+  - `memory_dish`
+  - `hidden_wound`
+  - `emotion_arc`
+  - `small_hook`
+  - `keepsake_item`
+- Arc phải đi qua nhiều đêm, không giải quyết quá nhanh.
+- Có khách đi qua nhau trong đời thật nhưng chỉ chạm nhau nhẹ trong quán.
 
-### Main Customers
+### 4.2 Recipes
+- Món phải data-driven:
+  - base
+  - flavor tags
+  - warmth level
+  - caffeine level
+  - comfort level
+  - emotion tags
+  - unlock condition
+- Có món quen.
+- Có món ký ức.
+- Có món theo thời tiết / mùa / trạng thái khách.
+- Có biến thể đúng lúc nhưng sai đêm.
 
-- Minh, tài xế đêm: kiệt sức, sợ nghỉ là thua.
-- Linh, nhân viên vừa nghỉ việc: trống rỗng, tự trách, học cách bắt đầu lại.
-- Chú Bảy, bảo vệ ca đêm: ít nói, giữ ảnh cũ, món ký ức là cháo trứng.
-- An, sinh viên làm đồ án: nói nhanh, tự ti, học lại niềm vui làm vì mình.
-- Cô Hạnh, bán hoa đêm: dịu dàng, cô độc, đem hoa thừa về quán.
+### 4.3 Nights And Events
+- Mỗi đêm có:
+  - weather
+  - ambience
+  - opening text
+  - customer queue
+  - special event
+  - closing reflection
+- Có đêm mưa lớn, đêm yên, đêm mất điện, đêm lễ, đêm cuối tháng, đêm trước một thay đổi lớn.
 
-### Writing Rules
+### 4.4 Notebook Progression
+- Notebook không phải inventory.
+- Notebook là ký ức tích lũy của quán.
+- Mỗi ghi chú phải phản ánh tiến triển cảm xúc của khách.
+- Có trang bí mật mở khi đạt đủ manh mối.
+- Có tab về món ký ức, kỷ vật, và ghi chú đêm trước.
 
-- Tiếng Việt tự nhiên, câu ngắn, có khoảng lặng.
-- Lựa chọn im lặng phải có giá trị.
-- Không biến chủ quán thành nhà trị liệu.
-- Không dùng quest language như “hãy giúp tôi”.
-- Không chốt mọi arc bằng happy ending sạch sẽ.
-
-### Content Pipeline
-
-- Mỗi khách có file data riêng sau phase refactor.
-- Mỗi visit gồm: arrival, mood, choices, recipe_reactions, notes_unlock, trust_delta, keepsake.
-- Mỗi món ký ức cần 3-5 manh mối trước khi mở phản ứng đặc biệt.
-- Notebook copy viết như chủ quán tự ghi, không phải UI debug.
+### 4.5 World Progression
+- Quán thay đổi rất nhẹ sau mỗi đêm.
+- Vật trang trí mới xuất hiện từ kỷ vật của khách.
+- Ánh sáng, radio, hoa, ly, note dán, ảnh cũ thay đổi theo tiến trình.
+- Quán dần thành một nơi trú ẩn có ký ức.
 
 ## 5. Gameplay Systems
 
-### Must Have
-
+### 5.1 Required Systems
 - Night loop: prep -> open -> serve/talk -> close.
-- Recipe selection by mood tags.
-- Customer state: entering, counter_idle, seated_idle, talking, leaving.
-- Slice preset settings for all 16x16 PNG props.
-- Notebook: customers, recipes, memory dishes, keepsakes, previous nights.
-- Save/load: current night, notes, trust, unlocked recipes, keepsakes, sprite presets.
+- Dialogue tree theo thái độ.
+- Recipe selection theo mood và ghi chú cũ.
+- Customer walk-in / seated / leaving state machine.
+- Notebook persistence.
+- Save/load versioned.
+- Sprite slice settings theo texture path.
 
-### Should Have
+### 5.2 Production Systems
+- Mood system của quán.
+- Memory system của khách.
+- Relationship graph giữa khách.
+- Keepsake system.
+- Weather and time-of-night modifiers.
+- End-of-night summary theo nhật ký quán.
 
-- Side-panel recipe book during service.
-- Weather-aware recipe hints.
-- Dialogue choices unlocked by remembered details.
-- Quán changes visually after keepsakes.
-- Audio settings persisted.
+### 5.3 Retention Systems
+- Khách quay lại với thoại mới.
+- Công thức mở khóa theo hành vi nhớ đúng.
+- Khi người chơi nhớ chi tiết cũ, khách nhận ra.
+- Quán đổi nhẹ theo tiến trình.
+- New Game+ nếu cần cho hậu release.
 
-### Won't Have
+## 6. Art Direction
 
-- Combat.
-- Farming.
-- Heavy shop management.
-- Overcooked-style timers.
-- Large map adventure.
+### 6.1 Visual Standard
+- Pixel art 16x16 thống nhất.
+- Nearest filter, mipmaps off, repeat disabled.
+- Không dùng scale lẻ.
+- Không crop atlas sai.
+- Không animate cả atlas.
+- Không trộn pack khác pixel density nếu không có chủ đích rõ.
 
-## 6. UI/UX Plan
+### 6.2 Scene Layers
+- background / wall
+- floor
+- back props
+- counter_back
+- characters
+- counter_front
+- props_front
+- fx
+- UI
 
-### Main Menu
-
-- Lower panel uses large 2-column action cards.
-- Buttons have title + short subtitle, no dense paragraph text.
-- Title overlay must not cover scene after entering game.
-
-### In-Game Bottom Panel
-
-- Dialogue: portrait/name/text/choices.
-- Recipe side panel: book-like layout, icon list on left, customer/mood notes on right.
-- Cooking: preview item, tags, action buttons.
-- Settings: grouped cards, not long debug forms.
-- Notebook: paper tabs, handwritten-feeling copy.
-
-### UX Acceptance
-
-- No text squeezed to one letter per line.
-- No horizontal overflow.
-- Buttons have minimum height.
-- Long descriptions go into panels/tooltips, not primary buttons.
-- Every screen tells the player the next action.
+### 6.3 Asset Production
+- Khách chính cần sprite sheet chuẩn.
+- Props animated cần preset slice riêng trong `data/sprite_slice_presets.json`.
+- UI production cần open-book sheet và các frame phụ.
+- Portraits, notes, tabs, buttons phải cùng tone giấy/gỗ/amber.
 
 ## 7. Audio Plan
 
-- Ambience loops: rain, distant motorbikes, fan hum, cup clink.
-- UI SFX: soft wood click, page turn, recipe select, door bell.
-- Cooking SFX: pour, stir, kettle, chopstick/cup.
-- Music: late-night acoustic/lofi/jazz, sparse, low tempo.
-- Mixer buses: Master, Music, Ambience, UI, SFX.
+- Ambience loops:
+  - mưa
+  - quạt
+  - xe xa xa
+  - cửa mở
+  - ly chạm nhẹ
+- UI SFX:
+  - lật sổ
+  - click gỗ
+  - chọn món
+  - nhận món
+- Cooking SFX:
+  - rót
+  - khuấy
+  - sôi
+  - múc
+- Music:
+  - lofi
+  - jazz nhẹ
+  - acoustic tối giản
+- Tách bus:
+  - Master
+  - Music
+  - Ambience
+  - UI
+  - SFX
 
 ## 8. Technical Plan
 
-### Architecture
+### 8.1 Architecture
+- Giữ core game data-driven.
+- Tách UI modal ra thành component rõ ràng.
+- Giữ `CharacterSpriteController` làm interface animation duy nhất.
+- Không để logic UI lẫn vào story data.
 
-- Keep content data-driven.
-- Split current monolithic `night_cafe_game.gd` into:
-  - `CafeSceneRenderer`
-  - `DialogueController`
-  - `RecipeController`
-  - `NotebookController`
-  - `SpriteSliceSettings`
-  - `SaveService`
-- Keep `CharacterSpriteController` as one animation interface.
+### 8.2 Data Structure
+- `demo_content.json`:
+  - game
+  - recipes
+  - customers
+  - nights
+  - demo_ending
+- `characters.json`:
+  - sprite paths
+  - frame rules
+  - state defaults
+- `sprite_slice_presets.json`:
+  - per texture path frame config
+  - slice count
+  - frame size
+  - fps
+  - loop
 
-### Asset Pipeline
+### 8.3 Save System
+- Save version phải có.
+- Có migration nếu schema đổi.
+- Save riêng cho player data.
+- Project presets ở `res://data/...`.
+- User save ở `user://...`.
 
-- All texture import: nearest, mipmaps off, repeat disabled.
-- 16x16 sprite settings stored per texture path.
-- Character config stays per character, not global.
-- Runtime never guesses if preset exists.
+### 8.4 UI Rendering Rules
+- Modal book dùng full overlay riêng.
+- Không dùng bottom panel cũ cho book content.
+- All text wrap phải dựa trên từ.
+- Action buttons phải có spacing rõ.
+- Scroll nội bộ cho list dài.
 
-### Save Data
+## 9. QA And Validation
 
-- Save version number.
-- Migration function per save version.
-- Separate user save from project presets:
-  - Project presets: `res://data/sprite_slice_presets.json`.
-  - Player save: `user://night_cafe_demo_save.json`.
-
-## 9. QA Plan
-
-### Smoke Tests
-
+### 9.1 Smoke Tests
 - Boot to main menu.
-- New game -> prep -> open -> dialogue -> recipe -> serve -> next customer.
-- Close night -> next night.
-- Save/load mid-demo.
-- Settings open/save sprite preset.
-- Notebook open from each phase.
-- Demo ending reachable.
+- New game.
+- Open Recipe Book.
+- Close Recipe Book.
+- Open Notebook.
+- Close Notebook.
+- Save and load.
+- Progress one full night.
+- Close game and reopen.
 
-### Visual QA
+### 9.2 Visual Tests
+- Book nằm giữa màn hình.
+- Background dim đúng.
+- Input bị khóa khi overlay mở.
+- Text không overflow.
+- Không có một chữ một dòng.
+- Không có list đè art.
+- Không có horizontal overflow.
 
-- Player not swallowed by counter.
-- Counter guest faces up at counter.
-- Table guests face camera/seated.
-- Walk-in only triggers on first customer arrival screen.
-- Props do not morph into unrelated atlas tiles.
-- 16x16 asset list excludes 32x32 pack.
+### 9.3 Content Tests
+- Ít nhất 5 khách chính có arc chạy được.
+- Mỗi khách có ghi chú mở dần.
+- Ít nhất 1 memory dish phản ứng rất rõ.
+- Kỷ vật cập nhật đúng.
+- Notebook phản ánh tiến triển đúng.
 
-### Text QA
+## 10. Release Milestones
 
-- Vietnamese signs display correctly.
-- No mojibake in runtime.
-- No one-letter-per-line labels.
-- No clipped button labels on 1280x720.
+### Milestone A
+- UI overlay modal hoàn chỉnh.
+- Text/layout không lỗi.
+- Recipe Book và Notebook đúng chuẩn release.
 
-## 10. Production Milestones
+### Milestone B
+- Full content architecture data-driven.
+- Thêm khách, món, đêm, sự kiện.
+- Mở rộng notebook và recipe book.
 
-### Milestone A - Demo Stabilization
+### Milestone C
+- Polish scene, lighting, layering, ambience.
+- Sửa toàn bộ sprite slicing và animation mapping.
+- Hoàn thiện visual consistency 16x16.
 
-- Fix current visual bugs.
-- Lock slice settings workflow.
-- Polish main menu and recipe panel.
-- Add basic idle motion.
-- Run full demo flow.
+### Milestone D
+- Audio integration.
+- Save/load hardening.
+- QA regression pass.
 
-### Milestone B - Content Expansion
+### Milestone E
+- Release candidate.
+- Build desktop.
+- Playtest 30-60 phút.
+- Chốt release notes và asset license notes.
 
-- Finish all 5 customer arcs for demo.
-- Add 3 vãng lai visits.
-- Add 5-10 memory dish unlocks.
-- Rewrite notebook copy pass.
+## 11. Acceptance Criteria
 
-### Milestone C - Art Polish
+- Recipe Book là open-book modal ở giữa màn hình.
+- Notebook là open-book modal ở giữa màn hình.
+- Book content không còn nằm dưới bottom panel cũ.
+- Text không tràn, không lệch, không một ký tự một dòng.
+- Overlay khóa input gameplay đúng cách.
+- Game vẫn giữ full loop chạy được.
+- Không crash.
+- Không có parse/runtime error nghiêm trọng.
+- Content data-driven đủ để mở rộng thành full release.
 
-- Replace any rectangle-only furniture with real 16x16 assets where available.
-- Add scene variants.
-- Add keepsake shelf.
-- Add customer portraits or clearer sprite callouts.
+## 12. Post-Release Outlook
 
-### Milestone D - Audio Integration
+- Nếu cần, mở seasonal content.
+- Nếu cần, mở hậu truyện hoặc New Game+.
+- Nếu cần, thêm khách, đêm, hoặc một chi nhánh/quán khác.
+- Giữ cùng tone: ấm, trầm, đời thường, không bi kịch hóa quá mức.
 
-- Add ambience loops.
-- Add UI/cooking SFX.
-- Add volume settings persistence.
-
-### Milestone E - Release Candidate
-
-- Build Windows export.
-- Fix console errors.
-- Run 30-60 minute playtest.
-- Capture screenshots/trailer clips.
-- Prepare itch.io/Steam page copy.
-
-## 11. Current Demo Acceptance Checklist
-
-- Main menu usable and not cramped.
-- Settings lists only 16x16 PNG assets.
-- Slice presets save and affect runtime animated props.
-- Character idle visibly moves subtly.
-- Customer walk-in happens only on arrival, not every button press.
-- Customer at counter faces the counter.
-- Recipe menu uses readable large cards.
-- Godot headless boot passes.
-- Working tree clean after commit.
