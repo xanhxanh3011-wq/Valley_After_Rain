@@ -1,8 +1,0 @@
-.godot/
-.import/
-*.tmp
-*.translation
-export/
-build/
-dist/
-*.log
