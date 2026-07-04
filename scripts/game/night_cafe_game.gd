@@ -108,6 +108,7 @@ var current_scene_recipe_id := ""
 var current_scene_result := ""
 var current_scene_animate_entry := false
 var current_scene_walk_in_customer_id := ""
+var customer_transition_in_progress := false
 var decorate_mode := false
 var decorate_tool := ""
 var decorate_selected_background := ""
@@ -558,6 +559,7 @@ func _close_book_overlay() -> void:
 func _open_book_overlay(texture_path: String) -> HBoxContainer:
 	_clear_overlay()
 	overlay_root.visible = true
+	overlay_root.z_index = 4000
 	_set_modal_input_locked(true)
 
 	var dim := ColorRect.new()
@@ -2007,12 +2009,56 @@ func _serve_recipe(recipe_id: String) -> void:
 	var next_action := _panel_button_grid(1, 8)
 	right.add_child(next_action)
 	var next_btn := _button("Khách tiếp theo", func():
-		current_visit_index += 1
-		_show_next_customer()
+		_advance_to_next_customer()
 	)
 	next_btn.custom_minimum_size = Vector2(0, 34)
 	next_btn.add_theme_font_size_override("font_size", 12)
 	next_action.add_child(next_btn)
+
+func _advance_to_next_customer() -> void:
+	if customer_transition_in_progress:
+		return
+	customer_transition_in_progress = true
+	await _animate_current_customer_departure()
+	customer_transition_in_progress = false
+	current_visit_index += 1
+	_show_next_customer()
+
+func _animate_current_customer_departure() -> void:
+	var departing_customer_id := str(current_visit.get("customer_id", ""))
+	if departing_customer_id.strip_edges() == "":
+		return
+	_clear()
+	_set_game_layout_mode("dialogue")
+	_setup_top_bar(true)
+	_render_cafe_scene("leave", departing_customer_id, "", "", false)
+	var departing := walking_customer
+	if departing == null or not is_instance_valid(departing):
+		return
+	var exit_points: Array[Vector2] = [
+		Vector2(departing.position.x, 340.0),
+		Vector2(departing.position.x, 408.0)
+	]
+	departing.play_walk("down")
+	for target in exit_points:
+		var guard := 0
+		while is_instance_valid(departing) and departing.position.distance_to(target) > 1.5 and guard < 240:
+			departing.play_walk("down")
+			departing.position = departing.position.move_toward(target, 2.0)
+			departing.position = departing.position.floor()
+			departing.z_index = int(departing.position.y)
+			guard += 1
+			await get_tree().process_frame
+		if not is_instance_valid(departing):
+			break
+	if is_instance_valid(departing):
+		await get_tree().create_timer(0.15).timeout
+		departing.queue_free()
+	walking_customer = null
+	walking_customer_state = "idle"
+	walking_path.clear()
+	walking_target_index = 0
+	walking_seat_foot = Vector2.ZERO
 
 func _show_closing() -> void:
 	_clear()
@@ -2463,7 +2509,10 @@ func _render_cafe_scene(mode := "idle", customer_id := "", recipe_id := "", resu
 	if active_customer != "" and animate_entry:
 		_add_customer_walk_in_scene(active_customer, _walk_in_customer_target_foot())
 	elif active_customer != "":
-		_add_customer_in_scene(active_customer, _walk_in_customer_target_foot(), true, false)
+		if mode == "leave":
+			_add_customer_leave_scene(active_customer, _walk_in_customer_target_foot())
+		else:
+			_add_customer_in_scene(active_customer, _walk_in_customer_target_foot(), true, false)
 
 	_add_animated_prop(AssetCatalog.LIMEZU_ANIMATED_16_DIR + "animated_candle.png", Vector2(176, 312), 0, Vector2i(16, 16), 2.0, 5.0, Color("#ffe8c2"))
 	_add_animated_prop(AssetCatalog.LIMEZU_ANIMATED_16_DIR + "animated_coffee.png", Vector2(560, 134), 0, Vector2i(16, 32), 2.4, 4.0, Color("#ffe8c2"))
@@ -2750,7 +2799,7 @@ func _add_table_front_overlays() -> void:
 	for pos in [Vector2(590, 274), Vector2(652, 274), Vector2(714, 274)]:
 		_add_scene_rect(pos + Vector2(0, 12), Vector2(34, 8), Color("#1b1009"), 310)
 
-func _add_customer_in_scene(customer_id: String, pos: Vector2, active := false, apply_preset_offset := true) -> void:
+func _add_customer_in_scene(customer_id: String, pos: Vector2, active := false, apply_preset_offset := true) -> CharacterSpriteController:
 	if active:
 		_add_warm_light(pos - Vector2(18, 18), Vector2(104, 104), 0.16)
 		_add_scene_label("...", pos + Vector2(-4, -44), Vector2(48, 20), Color("#f1d8a0"), 15)
@@ -2758,8 +2807,9 @@ func _add_customer_in_scene(customer_id: String, pos: Vector2, active := false, 
 	customer.force_idle_up()
 	_add_mood_effect(customer_id, customer.position, active)
 	customer.z_index = int(customer.position.y)
+	return customer
 
-func _add_customer_at_counter(customer_id: String, active := false, apply_preset_offset := true) -> void:
+func _add_customer_at_counter(customer_id: String, active := false, apply_preset_offset := true) -> CharacterSpriteController:
 	var seat_foot := _counter_customer_seat_foot()
 	if active:
 		_add_warm_light(seat_foot - Vector2(18, 30), Vector2(104, 104), 0.16)
@@ -2768,12 +2818,13 @@ func _add_customer_at_counter(customer_id: String, active := false, apply_preset
 	customer.force_idle_up()
 	_add_mood_effect(customer_id, customer.position, active)
 	customer.z_index = int(customer.position.y)
+	return customer
 
 func _add_customer_walk_in_scene(customer_id: String, seat_pos: Vector2) -> void:
 	_add_warm_light(seat_pos - Vector2(18, 18), Vector2(104, 104), 0.16)
 	_add_scene_label("...", seat_pos + Vector2(-4, -44), Vector2(48, 20), Color("#f1d8a0"), 15)
-	var spawn := Vector2(640, 706) + CHARACTER_SCENE_OFFSET
-	var entry := Vector2(640, 612) + CHARACTER_SCENE_OFFSET
+	var spawn := Vector2(seat_pos.x, 408.0)
+	var entry := Vector2(seat_pos.x, 340.0)
 	var seat_foot := seat_pos
 	walking_customer = _add_character_sprite(customer_id, spawn, "walk_up", Color("#ffffff"), false)
 	walking_customer.play_walk("up")
@@ -2783,11 +2834,24 @@ func _add_customer_walk_in_scene(customer_id: String, seat_pos: Vector2) -> void
 	walking_seat_foot = seat_foot
 	_add_mood_effect(customer_id, seat_foot, true)
 
+func _add_customer_leave_scene(customer_id: String, seat_pos: Vector2) -> void:
+	_add_warm_light(seat_pos - Vector2(18, 18), Vector2(104, 104), 0.12)
+	_add_scene_label("...", seat_pos + Vector2(-4, -44), Vector2(48, 20), Color("#f1d8a0"), 15)
+	walking_customer = _add_customer_in_scene(customer_id, seat_pos, true, false)
+	walking_customer_state = "leaving"
+	walking_path.clear()
+	walking_target_index = 0
+	walking_seat_foot = seat_pos
+	walking_customer.play_walk("down")
+
 func _update_customer_walk(delta: float) -> void:
-	if walking_customer == null or walking_path.is_empty() or walking_customer_state == "counter_idle":
+	if walking_customer == null or walking_path.is_empty() or walking_customer_state == "counter_idle" or walking_customer_state == "leaving":
 		return
 	if walking_target_index >= walking_path.size():
-		_seat_walking_customer()
+		if walking_customer_state == "leaving":
+			_finish_customer_departure()
+		else:
+			_seat_walking_customer()
 		return
 	var target: Vector2 = walking_path[walking_target_index]
 	var to_target: Vector2 = target - walking_customer.position
@@ -2816,6 +2880,15 @@ func _seat_walking_customer() -> void:
 	walking_customer.position = walking_seat_foot.floor()
 	walking_customer.force_idle_up()
 	walking_customer.z_index = int(walking_customer.position.y)
+
+func _finish_customer_departure() -> void:
+	if walking_customer != null and is_instance_valid(walking_customer):
+		walking_customer.queue_free()
+	walking_customer = null
+	walking_customer_state = "idle"
+	walking_path.clear()
+	walking_target_index = 0
+	walking_seat_foot = Vector2.ZERO
 
 func _counter_customer_seat_foot() -> Vector2:
 	return Vector2(404, 164)
